@@ -1,0 +1,16 @@
+#NEXUS 
+BEGIN TAXA; 
+    DIMENSIONS NTAX = 3;
+    TAXLABELS 
+        X1
+        X2
+        X3
+    ; 
+BEGIN NETWORKS; 
+    TRANSLATE 
+        8 X1, 
+        9 X2, 
+        10 X3, 
+    ; 
+    NETWORK * UNTITLED = [&R] (((((X2)#R2)#R0,(#H2)#R1),(X3,#H1)),(X1,#H0));
+END; 

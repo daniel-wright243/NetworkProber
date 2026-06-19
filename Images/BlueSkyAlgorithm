@@ -1,0 +1,17 @@
+// Blue Sky Algorithm
+digraph "Images/BlueSkyAlgorithm" {
+	labelloc=b
+	1 [label="" shape=point]
+	2 [shape=point xlabel=2]
+	12 [label="" shape=point]
+	13 [label="" shape=point]
+	14 [label="" shape=point]
+	15 [labelloc=b shape=point xlabel="x₂"]
+	16 [labelloc=b shape=point xlabel="x₁"]
+	1 -> 2 [arrowsize=0.2]
+	1 -> 12 [arrowsize=0.2]
+	12 -> 13 [arrowsize=0.2]
+	13 -> 14 [arrowsize=0.2]
+	14 -> 15 [arrowsize=0.2]
+	14 -> 16 [arrowsize=0.2]
+}

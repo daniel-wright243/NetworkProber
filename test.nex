@@ -1,0 +1,19 @@
+#NEXUS 
+BEGIN TAXA; 
+    DIMENSIONS NTAX = 5
+        A
+        B
+        C
+        Y
+        D
+    ; 
+BEGIN NETWORKS; 
+    TRANSLATE 
+        2 A, 
+        3 B, 
+        6 C, 
+        8 Y, 
+        10 D, 
+    ; 
+    NETWORK * UNTITLED = [&R] (A,B,((C,(Y)#R0),(D,#H0)));
+END; 
