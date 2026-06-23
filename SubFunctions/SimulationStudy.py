@@ -299,7 +299,7 @@ class SimulationStudy:
                 arc_list = self.getAllArcsFromNetwork(network)
                 # for repeat in range(int(fc)):
                 for j in range(1, 2):
-                    network = self.addForbiddenConfigurations(network, arc_list)
+                    network = self.addForbiddenConfigurations2(network)
                 print("FORBIDDEN CONFIGURATION")
                 # network.displayGraph()
 
@@ -414,7 +414,7 @@ class SimulationStudy:
                 #print(arc_list)
                 random_number = random.choice([1, 10])
                 if random_number == 1 or random_number == 2: # ADD FORBIDDEN CONFIGURATION
-                    network_list.append(self.addForbiddenConfigurations(tree, arc_list))
+                    network_list.append(self.addForbiddenConfigurations2(tree))
                 #else: # ADD CERTAIN AMOUNT OF EDGES BASED ON AMOUNT OF EDGES
                 #    network_list.append(self.addEdges(tree, arc_list))
                 ## print("I")
@@ -480,8 +480,8 @@ class SimulationStudy:
         """
         network = deepcopy(tree)
         leafs = network.getAllLeafs()
-        random_number = random.choice(['1', '2'])
-        # random_number = '1'
+        # random_number = random.choice(['1', '2'])
+        random_number = '1'
         #random_number = 2
         arcs_used = []
         starting_vertices = max(tree.vertices)
@@ -1224,7 +1224,7 @@ class SimulationStudy:
                                  "TV Input", "TV PN", "TV FN",
                                  "PL Input", "PL PN", "PL FN",
                                  "HN Input", "HN PN", "HN FN",
-                                 "FOLD TIME", "PP TIME"])
+                                 "FOLD TIME", "PP TIME", "MATCHING TIME"])
             for i in range(len(input_network_array)):
                 # if len(output_network_array_fold[i].getAllLeafs()) != len(input_network_array[i].getAllLeafs()):
                 #     print("INPUT NETWORK VERTICES")
@@ -1290,6 +1290,7 @@ class SimulationStudy:
                 line.append(hybrid_number_measure(output_network_array_fold[i]))
                 line.append(measure_data[3][i][0]) #FOLDING TIMING DATA
                 line.append(measure_data[3][i][1]) # PLOYPLOIDY TIMING DATA
+                line.append(measure_data[3][i][2]) # MATCHING TIMING DATA
                 # line.append(measure_data[3][i][0]) # MEASURE 4 FOLD NETWORK
                 # line.append(measure_data[3][i][1]) # MEASURE 4 PP NETWORK
                 # if len(input_network_array[i].getAllLeafs()) != len(output_network_array_fold[i].getAllLeafs()):
@@ -1302,6 +1303,13 @@ class SimulationStudy:
                     print(input_network_array[i].vertices)
                     print(input_network_array[i].getAllArcs())
                     print(input_network_array[i].root)
+                if input_network_array[i].checkTreeBasedNonBinary2():
+                    print("ENEWICK OF BROKEN INPUT NETWORK")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    input_network_array[i].displayGraph()
+                    input_network_array[i].makeBiPartiteGraph().displayGraph()
+                    break
+
                 csv_writer.writerow(line)
             print("SAVED DATA TO SimStudyDava.csv")
 
@@ -1392,5 +1400,227 @@ class SimulationStudy:
 
         return finished_network
 
+    def addForbiddenConfigurations2(self, tree):
+        """
+
+        :type tree: PhylogeneticNetwork
+        """
+
+        network = deepcopy(tree)
+
+        arc_list = tree.getAllArcs()
+
+        leaf_list = tree.getAllLeafs()
+
+        random_number = random.choice(['1', '2'])
+        # random_number = '1'
+
+        arcs_used = []
+        vertices_used = []
+        starting_vertices = max(tree.vertices)
+
+        if random_number == '1':
+            amount_of_input_edges = 4
+
+            starting_edges_index = starting_vertices
+
+            for i in range(amount_of_input_edges):
+                random_vertex_index = random.randrange(len(network.vertices) - 1)
+                vertex_subdivided = network.vertices[random_vertex_index]
+                while vertex_subdivided in leaf_list:
+                    random_vertex_index = random.randrange(len(network.vertices) - 1)
+                    vertex_subdivided = network.vertices[random_vertex_index]
+                arc_below = network.arcs[vertex_subdivided][0]
+                vertices_used.append(vertex_subdivided)
+                network.addVertexOnEdge(starting_vertices + 1, arc_below)
+                starting_vertices = starting_vertices + 1
+
+            # for i in range(amount_of_input_edges):
+            #     random_arc_index_1 = random.randrange(len(arc_list) - 1)
+            #     arc_to_be_subdivided_1 = arc_list[random_arc_index_1]
+            #     while arc_to_be_subdivided_1 in arcs_used:
+            #         random_arc_index_1 = random.randrange(len(arc_list) - 1)
+            #         arc_to_be_subdivided_1 = arc_list[random_arc_index_1]
+            #     arcs_used.append(arc_to_be_subdivided_1)
+            # for arcs in arcs_used:
+            #     vertices_used.append(arcs[0])
+            #     vertices_used.append(arcs[1])
+            #     network.addVertexOnEdge(starting_vertices + 1, arcs)
+            #     starting_vertices = starting_vertices + 1
+
+            first_vertex = starting_edges_index + 1
+            second_vertex = starting_edges_index + 2
+            third_vertex = starting_edges_index + 3
+            forth_vertex = starting_edges_index + 4
+
+            #MAKE FORBIDDEN CONFIGURATION
+
+            network.createVertex(starting_vertices + 1)
+            network.createVertex(starting_vertices + 2)
+            network.createVertex(starting_vertices + 3)
+
+            network.createArc([starting_edges_index + 1, starting_vertices + 1])
+            network.createArc([starting_edges_index + 2, starting_vertices + 1])
+
+            network.createArc([starting_edges_index + 3, starting_vertices + 2])
+            network.createArc([starting_edges_index + 4, starting_vertices + 2])
+
+            network.createArc([starting_vertices + 1, starting_vertices + 3])
+            network.createArc([starting_vertices + 2, starting_vertices + 3])
+
+            # network.createArc([starting_vertices + 3, starting_edges_index + 5])
+
+            # amount_of_output_egdes = 1
+            # max_vertex = max(vertices_used)
+            #
+            # for i in range(amount_of_output_egdes):
+            #     random_vertex_index = random.randrange(len(network.vertices) - 1)
+            #     vertex_subdivided = network.vertices[random_vertex_index]
+            #     while vertex_subdivided in leaf_list:
+            #         random_vertex_index = random.randrange(len(network.vertices) - 1)
+            #         vertex_subdivided = network.vertices[random_vertex_index]
+            #     while vertex_subdivided < max_vertex:
+            #         random_vertex_index = random.randrange(len(network.vertices) - 1)
+            #         vertex_subdivided = network.vertices[random_vertex_index]
+            #         while vertex_subdivided in leaf_list:
+            #             random_vertex_index = random.randrange(len(network.vertices) - 1)
+            #             vertex_subdivided = network.vertices[random_vertex_index]
+            #     arc_below = network.arcs[vertex_subdivided][0]
+            #     network.addVertexOnEdge(starting_vertices + 5, arc_below)
+            #     network.createArc([starting_vertices + 3, starting_edges_index + 5])
+
+            leaf_vertex_index = random.randrange(len(leaf_list) - 1)
+            leaf_vertex = leaf_list[leaf_vertex_index]
+
+            arc_above = network.reverseArcs[leaf_vertex][0]
+            arc_above = [arc_above[1], arc_above[0]]
+
+            while arc_above in arcs_used:
+                leaf_vertex_index = random.randrange(len(leaf_list) - 1)
+                leaf_vertex = leaf_list[leaf_vertex_index]
+
+                arc_above = network.reverseArcs[leaf_vertex][0]
+                arc_above = [arc_above[1], arc_above[0]]
+
+            network.addVertexOnEdge(starting_vertices + 5, arc_above)
+            network.createArc([starting_vertices + 3, starting_vertices + 5])
+
+            # network.displayGraph()
+
+            # for i in range(amount_of_output_edges):
+            #     random_arc_index_2 = random.randrange(len(arc_list) - 1)
+            #     arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            #     while arc_to_be_subdivided_2 in arcs_used:
+            #         random_arc_index_2 = random.randrange(len(arc_list) - 1)
+            #         arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            #     network = deepcopy(network)
+            #     network.addVertexOnEdge(starting_vertices + 4, arc_to_be_subdivided_2)
+            #     network.createArc([starting_vertices + 3, starting_vertices + 4])
+            #     if self.checkDirectedCyclicity(network):
+            #         amount_of_output_edges = amount_of_output_edges + 1
+            #         network.removeArc([starting_vertices + 3, starting_vertices + 4])
+            return network
+
+            # for i in range(amount_of_output_edges):
+            #     random_arc_index_2 = random.randrange(len(arc_list) - 1)
+            #     arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            #     while arc_to_be_subdivided_2 in arcs_used:
+            #         random_arc_index_2 = random.randrange(len(arc_list) - 1)
+            #         arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            #     # CHECK TO SEE IF NEW EDGE HAS ADDED A CYCLE
+            #     temp_network = deepcopy(network)
+            #     temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
+            #     temp_network.createArc([bottom_vertex_index, starting_vertices + 1])
+            #     if self.checkDirectedCyclicity(temp_network) or self.checkNotBinary(temp_network, starting_vertices + 1):
+            #         amount_of_output_edges = amount_of_output_edges + 1
+            #     else:
+            #         network = temp_network
+            # return network
+
+        elif random_number == '2':
+            amount_of_input_edges = 5
+            for i in range(amount_of_input_edges):
+                random_arc_index_1 = random.randrange(len(arc_list) - 1)
+                arc_to_be_subdivided_1 = arc_list[random_arc_index_1]
+                while arc_to_be_subdivided_1 in arcs_used:
+                    random_arc_index_1 = random.randrange(len(arc_list) - 1)
+                    arc_to_be_subdivided_1 = arc_list[random_arc_index_1]
+                arcs_used.append(arc_to_be_subdivided_1)
+            # MAKE THE FORBIDDEN CONFIGURATION
+            # if len(arcs_used) < 4:
+            #     ## print("ARC THRESHOLD NOT ACHIEVED")
+            starting_edges_index = starting_vertices
+            for arcs in arcs_used:  # ADD THE VERTICES TO THE EDGES
+                network.addVertexOnEdge(starting_vertices + 1, arcs)
+                starting_vertices = starting_vertices + 1
+            fc_starting_edges_index = starting_vertices
+            network.createVertex(starting_vertices + 1)
+            network.createArc([starting_edges_index + 1, starting_vertices + 1])
+            network.createArc([starting_edges_index + 2, starting_vertices + 1])
+            network.createVertex(starting_vertices + 2)
+            # print("STARTING VERTICES + 2")
+            # print(starting_vertices + 2)
+            network.createArc([starting_edges_index + 3, starting_vertices + 2])
+            network.createVertex(starting_vertices + 3)
+            network.createArc([starting_edges_index + 4, starting_vertices + 3])
+            network.createArc([starting_edges_index + 5, starting_vertices + 3])
+            network.createVertex(starting_vertices + 4)
+            # print("STARTING VERTICES + 2")
+            # print(starting_vertices + 4)
+            network.createArc([starting_vertices + 1, starting_vertices + 4])
+            network.createArc([starting_vertices + 2, starting_vertices + 4])
+            network.createVertex(starting_vertices + 5)
+            # print("STARTING VERTICES + 2")
+            # print(starting_vertices + 5)
+            network.createArc([starting_vertices + 2, starting_vertices + 5])
+            network.createArc([starting_vertices + 3, starting_vertices + 5])
+            starting_vertices = starting_vertices + 5
+            # print("STARTING VERTICES + 5")
+            # print(starting_vertices)
+            amount_of_output_edges = 3
+            vertex_index = [starting_vertices + 4, starting_vertices + 5]
+            # FIRST VERTEX
+            random_arc_index_2 = random.randrange(len(arc_list) - 1)
+            arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            while arc_to_be_subdivided_2 in arcs_used:
+                random_arc_index_2 = random.randrange(len(arc_list) - 1)
+                arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            temp_network = deepcopy(network)
+            temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
+            temp_network.createArc([fc_starting_edges_index + 4, starting_vertices + 1])
+            while self.checkDirectedCyclicity(temp_network):
+                random_arc_index_2 = random.randrange(len(arc_list) - 1)
+                arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+                while arc_to_be_subdivided_2 in arcs_used:
+                    random_arc_index_2 = random.randrange(len(arc_list) - 1)
+                    arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+                temp_network = deepcopy(network)
+                temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
+                temp_network.createArc([fc_starting_edges_index + 4, starting_vertices + 1])
+            network = temp_network
+            starting_vertices = starting_vertices + 1
+            arcs_used.append(arc_to_be_subdivided_2)
+            # SECOND VERTEX
+            random_arc_index_2 = random.randrange(len(arc_list) - 1)
+            arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            while arc_to_be_subdivided_2 in arcs_used:
+                random_arc_index_2 = random.randrange(len(arc_list) - 1)
+                arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+            temp_network = deepcopy(network)
+            temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
+            temp_network.createArc([fc_starting_edges_index + 5, starting_vertices + 1])
+            while self.checkDirectedCyclicity(temp_network):
+                random_arc_index_2 = random.randrange(len(arc_list) - 1)
+                arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+                while arc_to_be_subdivided_2 in arcs_used:
+                    random_arc_index_2 = random.randrange(len(arc_list) - 1)
+                    arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
+                temp_network = deepcopy(network)
+                temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
+                temp_network.createArc([fc_starting_edges_index + 5, starting_vertices + 1])
+            network = temp_network
+            starting_vertices = starting_vertices + 1
+            arcs_used.append(arc_to_be_subdivided_2)
+            return network
 
 

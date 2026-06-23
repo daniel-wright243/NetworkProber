@@ -1,8 +1,8 @@
 #NEXUS
-[R-package APE, Sun Apr 26 13:10:20 2026]
+[R-package APE, Mon Jan 13 14:47:43 2025]
 
 BEGIN TAXA;
-	DIMENSIONS NTAX = 21;
+	DIMENSIONS NTAX = 20;
 	TAXLABELS
 		sp.1
 		sp.2
@@ -24,7 +24,6 @@ BEGIN TAXA;
 		sp.18
 		sp.19
 		sp.20
-		ext.21
 	;
 END;
 BEGIN TREES;
@@ -48,8 +47,7 @@ BEGIN TREES;
 		17	sp.17,
 		18	sp.18,
 		19	sp.19,
-		20	sp.20,
-		21	ext.21
+		20	sp.20
 	;
-	TREE * UNTITLED = [&R] ((21,(((((5,(6,7)),4),((14,(15,(16,(19,20)))),(((12,13),(10,11)),(17,18)))),3),(2,(8,9)))),1);
+	TREE * UNTITLED = [&R] (((5,(((14,(15,16)),(12,13)),((7,((10,11),(8,9))),6))),(4,(2,3))),((17,(18,(19,20))),1));
 END;

@@ -1,5 +1,5 @@
 #NEXUS
-[R-package APE, Sun Apr 26 13:10:15 2026]
+[R-package APE, Mon Jan 13 14:47:38 2025]
 
 BEGIN TAXA;
 	DIMENSIONS NTAX = 10;
@@ -29,5 +29,5 @@ BEGIN TREES;
 		9	sp.9,
 		10	sp.10
 	;
-	TREE * UNTITLED = [&R] ((2,(3,((5,((7,((9,10),8)),6)),4))),1);
+	TREE * UNTITLED = [&R] (1,(2,(3,((7,(8,(9,10))),(4,(5,6))))));
 END;
