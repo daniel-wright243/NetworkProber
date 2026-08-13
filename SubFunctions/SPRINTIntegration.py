@@ -54,8 +54,8 @@ def runSPRINTImplementation(ploidy_list, species_list, core_choice, leaf_count):
         pos_leaf = [i for i,x in enumerate(vertex_list) if x == item]
         label[item] = leaf_list[pos_leaf[0]]
 
-    print("LABEL")
-    print(label)
+    # print("LABEL")
+    # print(label)
 
 
     # gives arcs contained in a bead curvature so visible in networkx

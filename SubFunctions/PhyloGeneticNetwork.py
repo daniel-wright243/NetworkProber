@@ -1735,12 +1735,71 @@ class PhylogeneticNetwork:
             return False
 
     def applyOmnianOppositeMatchingToGraph(self, matchingGraph, vertices_removed=[]):
-        ol, rl = self.getOmnianAndReticulationList()
+
+        omnian_list = self.getAllOmnians()
+
+        omnian_list = [0] + omnian_list
+
+        vertex_in_degree = [0] * (max(self.vertices) + 1)
+        vertex_out_degree = [0] * (max(self.vertices) + 1)
+
+        for vertex in self.arcs:
+            if len(vertex) > 0:
+                for arcs in vertex:
+                    if arcs[0] in self.vertices:
+                        vertex_out_degree[arcs[0]] = vertex_out_degree[arcs[0]] + 1
+                    if arcs[1] in self.vertices:
+                        vertex_in_degree[arcs[1]] = vertex_in_degree[arcs[1]] + 1
+
+        tree_vertex_array = []
+        reticulation_vertex_array = []
+        leaf_vertex_array = []
+
+        for i in range(len(vertex_in_degree)):
+            if vertex_in_degree[i] == 1 and vertex_out_degree[i] >= 2:
+                leaf_below = False
+                for arc in self.arcs[i]:
+                    if arc[1] in self.leafs:
+                        leaf_below = True
+                        break
+                if not leaf_below:
+                    tree_vertex_array.append(i)
+            if vertex_in_degree[i] >= 2 and vertex_out_degree[i] == 1:
+                reticulation_vertex_array.append(i)
+            if vertex_in_degree[i] == 1 and vertex_out_degree[i] == 0:
+                leaf_vertex_array.append(i)
+
+        connected_omnian_vertices = [0]
+        connected_reticulation_vertices = [0]
+        connected_omnian_arcs = []
+
+        for i in range(len(omnian_list)):
+            for j in range(len(reticulation_vertex_array)):
+                if [omnian_list[i], reticulation_vertex_array[j]] in self.arcs[omnian_list[i]]:
+                    if omnian_list[i] not in connected_omnian_vertices:
+                        connected_omnian_vertices.append(omnian_list[i])
+                    if reticulation_vertex_array[j] not in connected_reticulation_vertices:
+                        connected_reticulation_vertices.append(reticulation_vertex_array[j])
+
+        for i in range(len(connected_omnian_vertices)):
+            if i != 0:
+                for j in range(len(connected_reticulation_vertices)):
+                    if j != 0:
+                        if [connected_omnian_vertices[i], connected_reticulation_vertices[j]] in self.arcs[
+                            connected_omnian_vertices[i]]:
+                            connected_omnian_arcs.append([i, j])
+
+        # ol, rl = self.getOmnianAndReticulationList()
         if type(matchingGraph) == BiPartiteGraph:
             pairU, pairV = matchingGraph.returnHKMatching()
             edges_to_be_removed = []
 
             pairU, pairV = matchingGraph.returnHKMatching()
+
+            # print("PAIRU")
+            # print(pairU)
+            # print("PAIRV")
+            # print(pairV)
 
             # for i in range(len(pairV)):
             #     if pairV[i] != 0:
@@ -1751,8 +1810,16 @@ class PhylogeneticNetwork:
                 pairV.remove(0)
             for i in range(len(pairU)):
                 print(str(pairV[i] - 1) + ", " + str(pairU[i] - 1))
-                edges_to_be_removed.append([ol[pairV[i] - 1], rl[pairU[i] - 1]])
+                edges_to_be_removed.append([connected_omnian_vertices[pairV[i]], connected_reticulation_vertices[pairU[i]]])
             for edge in edges_to_be_removed:
                 self.removeArc(edge)
         else:
             return "Invalid matching graph class type"
+
+    def get_base_tree(self):
+        bpg = self.makeBiPartiteGraph()
+        bpg.hopcroftKarp()
+        network = deepcopy(self)
+        network.applyOppositeMatchingToGraph2(bpg)
+
+        return network

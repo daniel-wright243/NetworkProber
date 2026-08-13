@@ -1232,6 +1232,162 @@ class TreeSpotterAlgorithm:
         #                 network.vertices.remove(leaf)
         # return network
 
+    def treeBasedToNormalAlgorithm(self, network):
+        """
+
+        :type network: PhylogeneticNetwork
+        """
+
+        temp_network = deepcopy(network)
+
+        while not network.isNormal():
+
+            VN = temp_network.vertices
+            LN = temp_network.getAllLeafsInDegreeIndependant()
+
+            obpg = network.makeOmnianBipartiteGraph2()
+            obpg.hopcroftKarp()
+            M = obpg.returnHKMatching()
+
+            temp_network.applyOmnianOppositeMatchingToGraph(obpg)
+
+            LNPrime = temp_network.getAllLeafsInDegreeIndependant()
+
+            while LN != LNPrime:
+                CL = []
+                for leaf in LNPrime:
+                    if leaf not in LN:
+                        CL.append(leaf)
+                for vertex in CL:
+                    network.arcs[vertex] = []
+                    for reverseArc in network.reverseArcs[vertex]:
+                        arc = [reverseArc[1], reverseArc[0]]
+                        temp_network.removeArc(arc)
+                    temp_network.vertices.remove(vertex)
+                LNPrime = temp_network.getAllLeafsInDegreeIndependant()
+            network = temp_network.simplifyNetwork()
+
+            VNPrime = temp_network.vertices
+
+            if VN == VNPrime:
+                return temp_network
+
+        return temp_network
+
+    def treeBasedToTreeChildAlgorithm(self, network):
+        """
+
+        :type network: PhylogeneticNetwork
+        """
+
+        temp_network = deepcopy(network)
+
+        while not network.isTreeChild():
+            VN = temp_network.vertices
+            LN = temp_network.getAllLeafsInDegreeIndependant()
+
+            obpg = network.makeOmnianBipartiteGraph2()
+            # obpg.displayGraph()
+            obpg.hopcroftKarp()
+            M = obpg.returnHKMatching()
+            # print("MATCHING")
+            # print(M)
+
+            temp_network.applyOmnianOppositeMatchingToGraph(obpg)
+
+            obpg = network.makeOmnianBipartiteGraph2()
+            # obpg.displayGraph()
+
+            LNPrime = temp_network.getAllLeafsInDegreeIndependant()
+
+            while LN != LNPrime:
+                CL = []
+                for leaf in LNPrime:
+                    if leaf not in LN:
+                        CL.append(leaf)
+                for vertex in CL:
+                    network.arcs[vertex] = []
+                    for reverseArc in network.reverseArcs[vertex]:
+                        arc = [reverseArc[1], reverseArc[0]]
+                        temp_network.removeArc(arc)
+                    temp_network.vertices.remove(vertex)
+                LNPrime = temp_network.getAllLeafsInDegreeIndependant()
+            network = temp_network.simplifyNetwork()
+
+            VNPrime = temp_network.vertices
+
+            if VN == VNPrime:
+                return temp_network
+
+        return temp_network
+
+    def treeBasedToTreeChildAlgorithm2(self, network):
+        """
+
+        :type network: PhylogeneticNetwork
+        """
+
+        temp_network = deepcopy(network)
+
+        while not network.isTreeChild():
+            VN = temp_network.vertices
+            LN = temp_network.getAllLeafsInDegreeIndependant()
+
+            ON = temp_network.getAllOmnians()
+
+            for omnian in ON:
+
+                vertices_above = []
+                vertices_below = []
+
+                for arc in temp_network.reverseArcs[omnian]:
+                    vertices_above.append(arc[1])
+                    temp_network.removeArc([arc[1], arc[0]])
+
+                for arc in temp_network.arcs[omnian]:
+                    vertices_below.append(arc[1])
+                    temp_network.removeArc([arc[0], arc[1]])
+
+                temp_network.vertices.remove(omnian)
+
+                for vertex in vertices_above:
+                    for vertex2 in vertices_below:
+                        temp_network.createArc([vertex, vertex2])
+
+
+
+            # obpg = network.makeOmnianBipartiteGraph2()
+            # obpg.hopcroftKarp()
+            # M = obpg.returnHKMatching()
+            #
+            # temp_network.applyOmnianOppositeMatchingToGraph(obpg)
+
+            LNPrime = temp_network.getAllLeafsInDegreeIndependant()
+
+            while LN != LNPrime:
+                CL = []
+                for leaf in LNPrime:
+                    if leaf not in LN:
+                        CL.append(leaf)
+                for vertex in CL:
+                    network.arcs[vertex] = []
+                    for reverseArc in network.reverseArcs[vertex]:
+                        arc = [reverseArc[1], reverseArc[0]]
+                        temp_network.removeArc(arc)
+                    temp_network.vertices.remove(vertex)
+                LNPrime = temp_network.getAllLeafsInDegreeIndependant()
+            network = temp_network.simplifyNetwork()
+
+            VNPrime = temp_network.vertices
+
+            if VN == VNPrime:
+                return temp_network
+
+        return temp_network
+
+
+
+
 
 
 

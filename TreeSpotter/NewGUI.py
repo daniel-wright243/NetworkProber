@@ -12,12 +12,12 @@ from tkinter import ttk
 import numpy as np
 from tkinter.filedialog import askopenfilename
 
-from SubFunctions.Measures import measure1
-from SubFunctions.PhyloGeneticNetwork import PhylogeneticNetwork
-from SubFunctions.PloidyAlgorithm import PolyPloidy
-from SubFunctions.SimulationStudy import SimulationStudy
-from SubFunctions.TreeSpotterAlgorithm import TreeSpotterAlgorithm
-from SubFunctions.TreeSpotterFoldingFunction3 import FoldingFunction3
+from TreeSpotter.Measures import measure1
+from TreeSpotter.DAG import DAG
+from TreeSpotter.PloidyAlgorithm import PolyPloidy
+from TreeSpotter.SimulationStudy import SimulationStudy
+from TreeSpotter.TreeSpotterAlgorithm import TreeSpotterAlgorithm
+from TreeSpotter.TreeSpotterFoldingFunction3 import FoldingFunction3
 from phylox.newick_parser import extended_newick_to_dinetwork, dinetwork_to_extended_newick
 
 
@@ -99,7 +99,7 @@ class TreeSpotterGUI:
             text="Manual Network Input",
         ).pack(padx=5, pady=5)
 
-        self.vertices_input_label = tkinter.Label(self.manual_input_frame, text="Input amount of Vertices")
+        self.vertices_input_label = tkinter.Label(self.manual_input_frame, text="Input amount of Vertices in form [x, y, z, ...]")
         self.vertices_input_label.pack()
 
         self.vertices_input = tkinter.StringVar()
@@ -141,7 +141,7 @@ class TreeSpotterGUI:
             text="Method:"
         ).grid(row=1, column=0)
 
-        dd_options = ["Polyploidy", "Folding", "Polyploidy Components", "Folding Components", "Matching Components", "Treechild Algorithm", "Normal Algorithm"]
+        dd_options = ["Polyploidy", "Folding", "Polyploidy Components", "Folding Components", "Matching Components", "Treechild Algorithm", "Normal Algorithm", "New Folding Algorithm", "New PolyPloidy Algorithm"]
 
         self.algorithmDropDown = ttk.Combobox(self.algorithmSettingsFrame, values=dd_options)
         self.algorithmDropDown.set("Select an algorithm")
@@ -297,12 +297,12 @@ class TreeSpotterGUI:
                 all_ids.append(id)
                 all_values.append(value)
 
-            self.taxDict = {}
+            self.taxa = {}
 
             for i in range(len(all_ids)):
-                self.taxDict[all_ids[i]] = all_values[i]
+                self.taxa[all_ids[i]] = all_values[i]
 
-            self.PhyloNetwork.taxDict = self.taxDict
+            self.PhyloNetwork.taxa = self.taxa
 
     def clearNetwork(self):
         self.fullArcList = []
@@ -359,26 +359,30 @@ class TreeSpotterGUI:
         for key, value in reverse_labels.items():
             if key in temp_network.leaves:
                 converted_key = vertex_dict.get(str(key))
-                tax_dict[converted_key] = value
+                tax_dict[int(converted_key)] = value
 
+        print("NETWORK DETAILS")
+        print(vertex_list)
+        print(arc_list)
+        print(tax_dict)
 
-        finished_network = PhylogeneticNetwork(vertex_list, arc_list, 1, tax_dict)
+        finished_network = DAG(vertex_list, arc_list, tax_dict, 1)
 
         return finished_network
 
     def networkToENewickLine(self, network):
         """
 
-        :type network: PhylogeneticNetwork
+        :type network: DAG
         """
 
-        network.displayGraph()
+        # network.displayGraph()
 
         if 0 in network.vertices:
             network.vertices.remove(0)
 
         label_array = []
-        for key, value in network.taxDict.items():
+        for key, value in network.taxa.items():
             tup = (int(key), value)
             label_array.append(tup)
 
@@ -387,7 +391,7 @@ class TreeSpotterGUI:
         #     temp_arc = (arc[0], arc[1])
         #     arc_array.append(temp_arc)
 
-        leaf_set = network.getAllLeafs()
+        leaf_set = network.get_all_leaves()
 
         phyx_network = phylox.DiNetwork(labels=label_array)
         for vertex in network.vertices:
@@ -395,7 +399,7 @@ class TreeSpotterGUI:
             #     phyx_network.add_node(vertex, label=str(network.taxDict[vertex]))
             # else:
             phyx_network.add_node(vertex)
-        for arc in network.getAllArcs():
+        for arc in network.get_all_arcs():
             phyx_network.add_edge(arc[0], arc[1])
 
         # for key, value in network.taxDict.items():
@@ -420,8 +424,11 @@ class TreeSpotterGUI:
 
         self.num_arcs_label.config(text="Amount of Arcs: " + str(len(self.fullArcList)))
 
-        input_arcs = [0] * (int(self.vertices_input.get()) + 1)
-        output_arcs = [0] * (int(self.vertices_input.get()) + 1)
+        input_arcs = [0] * (int(max(ast.literal_eval(self.vertices_input.get()))) + 1)
+        output_arcs = [0] * (int(max(ast.literal_eval(self.vertices_input.get()))) + 1)
+
+        # input_arcs = [0] * (int(self.vertices_input.get()) + 1)
+        # output_arcs = [0] * (int(self.vertices_input.get()) + 1)
 
         for arc in self.fullArcList:
             output_arcs[arc[0]] = output_arcs[arc[0]] + 1
@@ -436,8 +443,9 @@ class TreeSpotterGUI:
         self.num_leafs_label.config(text="Amount of Leafs: " + str(leaf_amount))
 
         vertex_list = []
-        for i in range(int(self.vertices_input.get())):
-            vertex_list.append(i)
+        vertex_list = ast.literal_eval(self.vertices_input.get())
+        # for i in range(int(self.vertices_input.get())):
+        #     vertex_list.append(i)
 
         temp_taxDict = {}
 
@@ -452,13 +460,15 @@ class TreeSpotterGUI:
         for i in range(len(all_ids)):
             temp_taxDict[all_ids[i]] = all_values[i]
 
-        self.PhyloNetwork = PhylogeneticNetwork(vertex_list, self.fullArcList, int(self.root_input.get()), temp_taxDict)
+        self.PhyloNetwork = DAG(vertex_list, self.fullArcList, temp_taxDict, int(self.root_input.get()))
 
     def InputPageDisplayGraph(self, name):
         path = "Images/" + name
         digraph_image = graphviz.Digraph(path, comment=name)
-        for i in range(int(self.vertices_input.get())):
-            digraph_image.node(str(i + 1))
+        for vertex in ast.literal_eval(self.vertices_input.get()):
+            digraph_image.node(str(vertex))
+        # for i in range(int(self.vertices_input.get())):
+        #     digraph_image.node(str(i + 1))
         for arc in self.fullArcList:
             digraph_image.edge(str(arc[0]), str(arc[1]))
         digraph_image.render(path, format='png', view=False)
@@ -484,36 +494,36 @@ class TreeSpotterGUI:
             all_ids.append(id)
             all_values.append(value)
 
-        self.taxDict = {}
+        self.taxa = {}
 
         for i in range(len(all_ids)):
-            self.taxDict[all_ids[i]] = all_values[i]
+            self.taxa[all_ids[i]] = all_values[i]
 
         ## print(vertex_list)
         # temp_phylo_network = PhylogeneticNetwork(vertex_list, self.fullArcList, int(self.root_input.get()), self.taxDict)
 
         temp_phylo_network = self.PhyloNetwork
-        self.PhyloNetwork.taxDict = self.taxDict
+        self.PhyloNetwork.taxa = self.taxa
         self.PhyloNetwork = temp_phylo_network
-        self.BipGraph = self.PhyloNetwork.makeBiPartiteGraph()
+        self.BipGraph = self.PhyloNetwork.make_bipartite_graph()
 
         selectedAlgorithm = self.algorithmDropDown.get()
         print("SELECTED ALGORITHM")
         print(selectedAlgorithm)
 
-        if self.PhyloNetwork.isBinary():
-            if self.PhyloNetwork.checkTreeBasedBinary():
+        if self.PhyloNetwork.is_binary():
+            if self.PhyloNetwork.check_tree_based_binary():
                 self.algorithmProgressLabel.config(text="Network is already tree-based")
             else:
                 self.algorithmDecision(selectedAlgorithm)
                 print("SELF.PHYLONETWORK.VERTICES")
                 print(self.PhyloNetwork.vertices)
-                if self.PhyloNetwork.checkTreeBasedNonBinary2():
+                if self.PhyloNetwork.check_tree_based_non_binary():
                     self.algorithmProgressLabel.config(text="Algorithm State: Finished Tree-based")
                     self.tree_based_output_label.config(text="Treebased: True")
-                    if self.PhyloNetwork.isTreeChild():
+                    if self.PhyloNetwork.is_tree_child():
                         self.tree_child_output_label.config(text="Treechild: True")
-                        if self.PhyloNetwork.isNormal():
+                        if self.PhyloNetwork.is_normal():
                             self.normal_output_label.config(text="Normal: True")
                         else:
                             self.normal_output_label.config(text="Normal: False")
@@ -524,18 +534,20 @@ class TreeSpotterGUI:
                 else:
                     self.algorithmProgressLabel.config(text="Algorithm State: Finished not Tree-based")
                     self.tree_based_output_label.config(text="Treebased: False")
+                    self.tree_child_output_label.config(text="Treechild: False")
+                    self.normal_output_label.config(text="Normal: False")
                     self.randic_measure_output_label.config(text="Randic Measure: " + str(measure1(temp_phylo_network, self.PhyloNetwork)))
         else:
-            if self.PhyloNetwork.checkTreeBasedNonBinary2():
+            if self.PhyloNetwork.check_tree_based_non_binary():
                 self.algorithmProgressLabel.config(text="Network is already tree-based")
             else:
                 self.algorithmDecision(selectedAlgorithm)
-                if self.PhyloNetwork.checkTreeBasedNonBinary2():
+                if self.PhyloNetwork.check_tree_based_non_binary():
                     self.algorithmProgressLabel.config(text="Algorithm State: Finished Tree-based")
                     self.tree_based_output_label.config(text="Treebased: True")
-                    if self.PhyloNetwork.isTreeChild():
+                    if self.PhyloNetwork.is_tree_child():
                         self.tree_child_output_label.config(text="Treechild: True")
-                        if self.PhyloNetwork.isNormal():
+                        if self.PhyloNetwork.is_normal():
                             self.normal_output_label.config(text="Normal: True")
                         else:
                             self.normal_output_label.config(text="Normal: False")
@@ -546,13 +558,15 @@ class TreeSpotterGUI:
                 else:
                     self.algorithmProgressLabel.config(text="Algorithm State: Finished not Tree-based")
                     self.tree_based_output_label.config(text="Treebased: False")
+                    self.tree_child_output_label.config(text="Treechild: False")
+                    self.normal_output_label.config(text="Normal: False")
                     self.randic_measure_output_label.config(text="Randic Measure: " + str(measure1(temp_phylo_network, self.PhyloNetwork)))
 
 
 
 
     def displayImage(self, network):
-        self.PhyloNetwork.createGraphImage()
+        self.PhyloNetwork.create_graph_image()
         img = Image.open("Images/PhylogeneticNetworkImage.png")
         # image_width, image_height = img.size
         # resized_image = img.resize((old_image_width, old_image_height))
@@ -568,8 +582,8 @@ class TreeSpotterGUI:
         :type network: PhylogeneticNetwork
         """
         self.num_vertices_label.config(text="Amount of Vertices: " + str(len(network.vertices)))
-        self.num_arcs_label.config(text="Amount of Arcs: " + str(len(network.getAllArcs())))
-        self.num_leafs_label.config(text="Amount of Leafs: " + str(len(network.getAllLeafs())))
+        self.num_arcs_label.config(text="Amount of Arcs: " + str(len(network.get_all_arcs())))
+        self.num_leafs_label.config(text="Amount of Leafs: " + str(len(network.get_all_leaves())))
 
         return network
 
@@ -581,35 +595,38 @@ class TreeSpotterGUI:
             self.updateNetworkInfo(self.PhyloNetwork)
         elif selectedAlgorithm == "Folding":
             output = FoldingFunction3(self.PhyloNetwork, self.PhyloNetwork).startAlgorithmFullNetwork()
+
+
+
             self.PhyloNetwork = output
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
             print("FOLDING")
         elif selectedAlgorithm == "Polyploidy Components":
-            output = TreeSpotterAlgorithm(self.PhyloNetwork).startAlgorithm(True)
+            output = TreeSpotterAlgorithm(self.PhyloNetwork).start_algorithm(True)
             self.PhyloNetwork = output
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
             print("POLYPLOIDY COMPONENTS")
         elif selectedAlgorithm == "Folding Components":
-            output = TreeSpotterAlgorithm(self.PhyloNetwork).startAlgorithm(False)
+            output = TreeSpotterAlgorithm(self.PhyloNetwork).start_algorithm(False)
             print("OUTPUT VERTICES")
             print(output.vertices)
             print("OUTPUT ARCS")
-            print(output.getAllArcs())
+            print(output.get_all_arcs())
             self.PhyloNetwork = output
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
             print("FOLDING COMPONENTS")
         elif selectedAlgorithm == "Matching Components":
-            output = TreeSpotterAlgorithm(self.PhyloNetwork).bipartiteGraphAlgorithm(self.PhyloNetwork)
+            output = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
             self.PhyloNetwork = output
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
         elif selectedAlgorithm == "Treechild Algorithm":
-            treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartiteGraphAlgorithm(self.PhyloNetwork)
-            if not treebased.isTreeChild():
-                treechild = TreeSpotterAlgorithm(treebased).treeBasedToTreeChildAlgorithm(treebased)
+            treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
+            if not treebased.is_tree_child():
+                treechild = TreeSpotterAlgorithm(treebased).tree_based_to_tree_child_algorithm(treebased)
                 self.PhyloNetwork = treechild
                 self.displayImage(treechild)
                 self.updateNetworkInfo(treechild)
@@ -618,9 +635,9 @@ class TreeSpotterGUI:
                 self.displayImage(treebased)
                 self.updateNetworkInfo(treebased)
         elif selectedAlgorithm == "Normal Algorithm":
-            treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartiteGraphAlgorithm(self.PhyloNetwork)
-            if not treebased.isNormal():
-                normal = TreeSpotterAlgorithm(treebased).treeBasedToNormalAlgorithm(treebased)
+            treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
+            if not treebased.is_normal():
+                normal = TreeSpotterAlgorithm(treebased).tree_based_to_normal_algorithm(treebased)
                 self.PhyloNetwork = normal
                 self.displayImage(normal)
                 self.updateNetworkInfo(normal)
@@ -628,6 +645,26 @@ class TreeSpotterGUI:
                 self.PhyloNetwork = treebased
                 self.displayImage(treebased)
                 self.updateNetworkInfo(treebased)
+        elif selectedAlgorithm == "New Folding Algorithm":
+            output = TreeSpotterAlgorithm(self.PhyloNetwork).minimised_folding_algorithm(self.PhyloNetwork)
+            print("OUTPUT VERTICES")
+            print(output.vertices)
+            print("OUTPUT ARCS")
+            print(output.get_all_arcs())
+            self.PhyloNetwork = output
+            self.displayImage(self.PhyloNetwork)
+            self.updateNetworkInfo(self.PhyloNetwork)
+            print("FOLDING COMPONENTS")
+        elif selectedAlgorithm == "New PolyPloidy Algorithm":
+            output = TreeSpotterAlgorithm(self.PhyloNetwork).minimised_ployploidy_algorithm(self.PhyloNetwork)
+            print("OUTPUT VERTICES")
+            print(output.vertices)
+            print("OUTPUT ARCS")
+            print(output.get_all_arcs())
+            self.PhyloNetwork = output
+            self.displayImage(self.PhyloNetwork)
+            self.updateNetworkInfo(self.PhyloNetwork)
+            print("POLYPLOIDY COMPONENTS")
         else:
             print("INVALID METHOD")
 
@@ -636,6 +673,7 @@ class TreeSpotterGUI:
         SimStudy = SimulationStudy(100, 100)
         # bioSimStudy_measure1, bioSimStudy_measure2, bioSimStudy_measure3, bioSimStudy_measure4 = SimStudy.runBioSimStudy()
         # SimStudy.runBioSimStudy()
+        # SimStudy.runGeneratedSimStudy()
         SimStudy.runGeneratedSimStudy()
         # SimStudy.runBioSimStudy()
 
@@ -783,7 +821,7 @@ class TreeSpotterGUI:
             for i in range(1, vertex_required + 1):
                 vertex_list.append(i)
 
-            ConstructedNetwork = PhylogeneticNetwork(vertex_list, [], 1)
+            ConstructedNetwork = DAG(vertex_list, [],  {}, 1)
 
             self.currentVertex = 1
             self.leafDict = {}
@@ -819,7 +857,7 @@ class TreeSpotterGUI:
                         lowest_vertex = value[0]
                 flattened_item.remove([lowest_vertex, lowest_value])
                 for value in flattened_item:
-                    ConstructedNetwork.createArc([value[0], lowest_vertex])
+                    ConstructedNetwork.add_arc([value[0], lowest_vertex])
 
             # ConstructedNetwork.displayGraph()
 
@@ -886,7 +924,7 @@ class TreeSpotterGUI:
             # print("VERTEX LIST")
             # print(vertex_list)
 
-            ConstructedNetwork = PhylogeneticNetwork(vertex_list, [[0, 1]], 0)
+            ConstructedNetwork = DAG(vertex_list, [[0, 1]],  {}, 0)
 
             # print("CONSTRUCTED NETWORK VERTEX LIST")
             # print(ConstructedNetwork.vertices)
@@ -916,14 +954,14 @@ class TreeSpotterGUI:
     def NexusNetworkFrameRecursiveSearch(self, frame, vertices_on_each_level, previousVertex, counter, ConstructedNetwork):
         for i in range(len(frame)):
             #self.levelDict[counter] = previousVertex
-            ConstructedNetwork.createArc([previousVertex, self.currentVertex + 1])
+            ConstructedNetwork.add_arc([previousVertex, self.currentVertex + 1])
             self.currentVertex = self.currentVertex + 1
             if type(frame[i]) == str:
                 if "#" in frame[i]:
                     if frame[i] not in self.reticulationIndex.keys():
                         self.reticulationIndex[frame[i]] = self.currentVertex
                     else:
-                        ConstructedNetwork.createArc([self.currentVertex + 1, self.reticulationIndex[frame[i]]])
+                        ConstructedNetwork.add_arc([self.currentVertex + 1, self.reticulationIndex[frame[i]]])
                     counter = counter + 1
                     self.NexusNetworkFrameRecursiveSearch(frame[i], vertices_on_each_level, self.currentVertex,counter, ConstructedNetwork)
                 else:
@@ -962,7 +1000,7 @@ class TreeSpotterGUI:
             #print(self.leafDict)
             #print("VERTICES ON EACH LEVEL")
             #print(vertices_on_each_level)
-            ConstructedNetwork.createArc([previousVertex, self.currentVertex + 1])
+            ConstructedNetwork.add_arc([previousVertex, self.currentVertex + 1])
             self.currentVertex = self.currentVertex + 1
             if type(frame[i]) != list and type(frame[i]) != numpy.ndarray:
                 self.leafDict[frame[i]] = self.currentVertex
@@ -989,13 +1027,13 @@ class TreeSpotterGUI:
         file = open(directory, 'w')
         file.write('#NEXUS \n')
 
-        tax_length = len(self.PhyloNetwork.taxDict)
+        tax_length = len(self.PhyloNetwork.taxa)
 
         if tax_length > 0:
             file.write('BEGIN TAXA; \n')
             file.write('    DIMENSIONS NTAX = ' + str(tax_length) + ";" + "\n")
             file.write('    TAXLABELS \n')
-            for key, value in self.PhyloNetwork.taxDict.items():
+            for key, value in self.PhyloNetwork.taxa.items():
                 file.write("        " + str(value) + "\n")
             file.write("    ; \n")
 
@@ -1003,7 +1041,7 @@ class TreeSpotterGUI:
 
         if tax_length > 0:
             file.write('    TRANSLATE \n')
-            for key, value in self.PhyloNetwork.taxDict.items():
+            for key, value in self.PhyloNetwork.taxa.items():
                 file.write("        " + str(key) + " " + str(value) + ", \n")
             file.write('    ; \n')
 
@@ -1024,8 +1062,8 @@ class TreeSpotterGUI:
         # print(self.networkArray)
         # print(self.networkNEXUSStringArray)
 
-        network: PhylogeneticNetwork = finished_network
-        arc_list = network.getAllArcs()
+        network: DAG = finished_network
+        arc_list = network.get_all_arcs()
         if type(arc_list[0]) == int:
             arc_list = [[arc_list[0], arc_list[1]]]
         self.fullArcList = self.fullArcList + arc_list
@@ -1052,8 +1090,8 @@ class TreeSpotterGUI:
         path = "Images/InputPreviewNetwork"
         digraph_image = graphviz.Digraph(path, comment="InputPreviewNetwork")
         for vertex in network.vertices:
-            if str(vertex) in network.taxDict.keys():
-                digraph_image.node(str(vertex), label=str(network.taxDict[str(vertex)]))
+            if str(vertex) in network.taxa.keys():
+                digraph_image.node(str(vertex), label=str(network.taxa[str(vertex)]))
             else:
                 digraph_image.node(str(vertex))
         for arc in self.fullArcList:
@@ -1073,12 +1111,12 @@ class TreeSpotterGUI:
         self.PhyloNetwork = network
 
         i = 0
-        for key, value in network.taxDict.items():
+        for key, value in network.taxa.items():
             self.set.insert(parent='', index='end', iid=i, text='', values=(key, value))
             i = i + 1
 
         self.networkVertexList = self.PhyloNetwork.vertices
-        self.networkFullArcList = self.PhyloNetwork.getAllArcs()
+        self.networkFullArcList = self.PhyloNetwork.get_all_arcs()
 
     def importNEXUSFile(self):
         root_dir = str(pathlib.Path(__file__).parent.parent.resolve()) + '/NEXUS Files'
@@ -1134,8 +1172,8 @@ class TreeSpotterGUI:
 
         finished_network = self.readENewickLine(network_array[0])
 
-        network: PhylogeneticNetwork = finished_network
-        arc_list = network.getAllArcs()
+        network: DAG = finished_network
+        arc_list = network.get_all_arcs()
         if type(arc_list[0]) == int:
             arc_list = [[arc_list[0], arc_list[1]]]
         self.fullArcList = self.fullArcList + arc_list
@@ -1162,8 +1200,8 @@ class TreeSpotterGUI:
         path = "Images/InputPreviewNetwork"
         digraph_image = graphviz.Digraph(path, comment="InputPreviewNetwork")
         for vertex in network.vertices:
-            if str(vertex) in network.taxDict.keys():
-                digraph_image.node(str(vertex), label=str(network.taxDict[str(vertex)]))
+            if str(vertex) in network.taxa.keys():
+                digraph_image.node(str(vertex), label=str(network.taxa[str(vertex)]))
             else:
                 digraph_image.node(str(vertex))
         for arc in self.fullArcList:
@@ -1183,12 +1221,12 @@ class TreeSpotterGUI:
         self.PhyloNetwork = network
 
         i = 0
-        for key, value in network.taxDict.items():
+        for key, value in network.taxa.items():
             self.set.insert(parent='', index='end', iid=i, text='', values=(key, value))
             i = i + 1
 
         self.networkVertexList = self.PhyloNetwork.vertices
-        self.networkFullArcList = self.PhyloNetwork.getAllArcs()
+        self.networkFullArcList = self.PhyloNetwork.get_all_arcs()
 
 
         print("TRANSLATE START")

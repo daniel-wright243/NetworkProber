@@ -3,6 +3,7 @@ import io
 import SubFunctions.PADRE
 import networkx
 
+import TreeSpotter.NewGUI
 from SubFunctions import SPRINTIntegration
 from SubFunctions.MainGUI import ProgramGUI
 from SubFunctions.MultiLabelledGraph import MultiLabelledGraph
@@ -604,7 +605,10 @@ if __name__ == '__main__':
     # test_string = dinetwork_to_extended_newick(network)
     # print(test_string)
 
-    tsGUI = TreeSpotterGUI(100, 100)
+    # tsGUI = TreeSpotterGUI(100, 100)
+    # tsGUI.mainGUI()
+
+    tsGUI = TreeSpotter.NewGUI.TreeSpotterGUI(100, 100)
     tsGUI.mainGUI()
 
     # mainGUI = ProgramGUI(100, 100)

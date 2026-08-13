@@ -16,11 +16,11 @@ import phylox
 from phylox.newick_parser import dinetwork_to_extended_newick, extended_newick_to_dinetwork
 
 from SubFunctions.FoldingAlgorithm import FoldingAlgorithm
-from SubFunctions.PhyloGeneticNetwork import PhylogeneticNetwork
+from TreeSpotter.DAG import DAG
 from SubFunctions.PloidyAlgorithm import PolyPloidy
 # from SubFunctions.MultiLabelledGraph import MultiLabelledGraph
-from SubFunctions.TreeSpotterAlgorithm import TreeSpotterAlgorithm
-from SubFunctions.Measures import *
+from TreeSpotter.TreeSpotterAlgorithm import TreeSpotterAlgorithm
+from TreeSpotter.Measures import *
 
 
 class SimulationStudy:
@@ -44,7 +44,7 @@ class SimulationStudy:
         for i in range(1, 7):
             vertices_list.append(i)
         arc_list = [[1, 2], [1, 3], [2, 4], [2, 5], [4, 6], [5, 6], [3, 6], [4, 7], [5, 7], [3, 7]]
-        bio_network = PhylogeneticNetwork(vertices_list, arc_list, 1)
+        bio_network = DAG(vertices_list, arc_list, {},  1)
         #bio_network.displayGraph()
         # PA = PolyPloidy(bio_network)
         # NPrime = PA.startAlgorithm()
@@ -77,7 +77,7 @@ class SimulationStudy:
                             [34, 21], [34, 22], [34, 23], [34, 24], [34, 25], [34, 27], [34, 31], [34, 60], [35, 36],
                             [36, 38], [37, 36], [37, 39], [38, 47], [38, 48], [39, 45], [40, 39], [41, 40], [42, 44],
                             [59, 42], [59, 40], [60, 49], [60, 33], [61, 35], [61, 46]]
-        bio_preset1_network = PhylogeneticNetwork(bio_preset1_vertices, bio_preset1_arcs, 0, bio_preset1_taxDict)
+        bio_preset1_network = DAG(bio_preset1_vertices, bio_preset1_arcs, bio_preset1_taxDict,0)
 
         #BIO EXAMPLE 2
         bio_preset2_vertices = [0]
@@ -120,7 +120,7 @@ class SimulationStudy:
                             [27, 28], [27, 29], [27, 30], [28, 60], [29, 61], [30, 62], [31, 63], [32, 64], [34, 74],
                             [34, 35], [35, 36], [35, 71], [36, 43], [36, 44], [36, 39], [36, 40], [36, 41], [36, 42],
                             [39, 67], [40, 68], [41, 69], [42, 70], [43, 65], [44, 66], ]
-        bio_preset2_network = PhylogeneticNetwork(bio_preset2_vertices, bio_preset2_arcs, 0, bio_preset2_taxDict)
+        bio_preset2_network = DAG(bio_preset2_vertices, bio_preset2_arcs, bio_preset2_taxDict, 0)
 
         #BIO EXAMPLE 3
         bio_preset3_vertices = [0]
@@ -173,7 +173,7 @@ class SimulationStudy:
                             [38, 39], [39, 40], [39, 41], [40, 85], [40, 86], [41, 42], [41, 89], [42, 87], [42, 88],
                             [43, 48], [44, 45], [44, 43], [45, 71], [45, 46], [46, 72], [46, 73], [47, 74], [47, 75],
                             [48, 69], [48, 70], [49, 78], [49, 79]]
-        bio_preset3_network = PhylogeneticNetwork(bio_preset3_vertices, bio_preset3_arcs, 0, bio_preset3_taxDict)
+        bio_preset3_network = DAG(bio_preset3_vertices, bio_preset3_arcs, bio_preset3_taxDict, 0)
 
         #RUN TREESPOTTER ON BIO NETWORKS
 
@@ -236,8 +236,8 @@ class SimulationStudy:
 
     def getTreesFromFiles(self):
         root_dir = str(pathlib.Path(__file__).parent.parent.resolve()) + '\\R files\\'
-        # tree_leaves_list = [10, 15, 20, 25, 30, 35]
-        tree_leaves_list = [10]
+        tree_leaves_list = [10, 15, 20, 25, 30, 35]
+        # tree_leaves_list = [10, 15, 20]
         nexus_tree_array = []
         self.networkArray = []
         self.treeArray = []
@@ -245,7 +245,7 @@ class SimulationStudy:
         self.networkNEXUSStringArray = []
         for leaf_set in tree_leaves_list:
             folder_dir = root_dir + str(leaf_set) + " Leaves\\"
-            for i in range(1, 51):
+            for i in range(1, 101):
             # for i in range(1, 11):
                 file_dir = folder_dir + str(i) + "simTree.nex"
                 nexus_tree_array.append(self.SimStudyReadNexusLine(file_dir))
@@ -302,7 +302,7 @@ class SimulationStudy:
                 # for repeat in range(int(fc)):
                 for j in range(1, 2):
                     network = self.addForbiddenConfigurations2(network)
-                print("FORBIDDEN CONFIGURATION")
+                # print("FORBIDDEN CONFIGURATION")
                 # network.displayGraph()
 
                 #PUT NETWORK INTO TREESPOTTER AND RETURN OUTPUT
@@ -318,23 +318,28 @@ class SimulationStudy:
                 input_pp = deepcopy(converted_network)
                 input_matching = deepcopy(converted_network)
                 input_tc = deepcopy(converted_network)
+                input_n = deepcopy(converted_network)
 
                 fold_start_time = time.time()
-                output_networks_fold.append(TreeSpotterAlgorithm(input_fold).startAlgorithm(False))
+                # output_networks_fold.append(TreeSpotterAlgorithm(input_fold).start_algorithm(False))
+                output_networks_fold.append(TreeSpotterAlgorithm(input_fold).minimised_folding_algorithm(input_fold))
                 fold_end_time = time.time()
                 polyploidy_start_time = time.time()
-                output_networks_pp.append(TreeSpotterAlgorithm(input_pp).startAlgorithm(True))
+                # output_networks_pp.append(TreeSpotterAlgorithm(input_pp).start_algorithm(True))
+                output_networks_pp.append(TreeSpotterAlgorithm(input_pp).minimised_ployploidy_algorithm(input_pp))
                 polyploidy_end_time = time.time()
                 matching_algorithm_start_time = time.time()
-                output_m = TreeSpotterAlgorithm(input_matching).bipartiteGraphAlgorithm(input_matching)
+                output_m = TreeSpotterAlgorithm(input_matching).bipartite_graph_algorithm(input_matching)
                 output_networks_matching.append(output_m)
                 matching_algorithm_end_time = time.time()
                 tree_child_start_time = time.time()
-                output_tc = TreeSpotterAlgorithm(output_m).treeBasedToTreeChildAlgorithm(output_m)
+                output_tc = TreeSpotterAlgorithm(output_m).tree_based_to_tree_child_algorithm(output_m)
+                # output_tc = TreeSpotterAlgorithm(input_tc).tree_based_to_tree_child_algorithm(input_tc)
                 output_networks_tc.append(output_tc)
                 tree_child_end_time = time.time()
                 normal_start_time = time.time()
-                output_networks_n.append(TreeSpotterAlgorithm(output_m).treeBasedToNormalAlgorithm(output_m))
+                output_networks_n.append(TreeSpotterAlgorithm(output_m).tree_based_to_normal_algorithm(output_m))
+                # output_networks_n.append(TreeSpotterAlgorithm(input_n).tree_based_to_normal_algorithm(input_n))
                 normal_end_time = time.time()
 
                 fold_total_time = fold_end_time - fold_start_time
@@ -370,14 +375,14 @@ class SimulationStudy:
         for i in range(1, 19):
             vertices_list.append(i)
         arc_list = [[1, 2], [1, 3], [2, 4], [2, 9], [3, 5], [3, 6], [4, 7], [4, 8], [5, 10], [6, 10], [6, 11], [7, 12], [7, 13], [8, 13], [8, 14], [9, 14], [9, 15], [10, 16], [11, 16], [11, 17], [13, 18], [14, 18], [16, 19], [18, 20], [5, 21]]
-        test_network = PhylogeneticNetwork(vertices_list, arc_list, 1)
+        test_network = DAG(vertices_list, arc_list, {}, 1)
 
         vertices_list2 = []
         for i in range(1, 12):
             vertices_list2.append(i)
         arc_list2 = [[1, 2], [1, 5], [2, 3], [2, 4], [3, 6], [3, 7], [4, 7], [4, 8], [5, 8], [5, 9], [7, 10], [8, 10], [10, 11]]
 
-        test_network2 = PhylogeneticNetwork(vertices_list2, arc_list2, 1)
+        test_network2 = DAG(vertices_list2, arc_list2, {}, 1)
 
         #test_network2.displayGraph()
         #test_network.makeBiPartiteGraph().displayGraph()
@@ -444,8 +449,10 @@ class SimulationStudy:
                 if self.checkNotBinary(network, vertex):
                     ## print("VERTEX")
                     ## print(vertex)
-                    incoming_arcs = len(network.reverseArcs[vertex])
-                    outgoing_arcs = len(network.arcs[vertex])
+                    incoming_arcs = len(network.vertex_dict[vertex]["reverseArcs"])
+                    # incoming_arcs = len(network.reverseArcs[vertex])
+                    outgoing_arcs = len(network.vertex_dict[vertex]["arcs"])
+                    # outgoing_arcs = len(network.arcs[vertex])
                     ## print("INCOMING ARCS")
                     ## print(network.reverseArcs[vertex])
                     ## print(incoming_arcs)
@@ -488,10 +495,10 @@ class SimulationStudy:
 
         Parameters
         ----------
-        tree : PhylogeneticNetwork
+        tree : DAG
         """
         network = deepcopy(tree)
-        leafs = network.getAllLeafs()
+        leafs = network.get_all_leaves()
         # random_number = random.choice(['1', '2'])
         random_number = '1'
         #random_number = 2
@@ -510,17 +517,17 @@ class SimulationStudy:
             #MAKE THE FORBIDDEN CONFIGURATION
             starting_edges_index = starting_vertices
             for arcs in arcs_used: #ADD THE VERTICES TO THE EDGES
-                network.addVertexOnEdge(starting_vertices + 1, arcs)
+                network.add_vertex_on_edge(starting_vertices + 1, arcs)
                 starting_vertices = starting_vertices + 1
             #MAKE THE FORBIDDEN CONFIGURATION
-            network.createArc([starting_edges_index + 1, starting_vertices + 1])
-            network.createArc([starting_edges_index + 2, starting_vertices + 1])
-            network.createArc([starting_edges_index + 3, starting_vertices + 2])
-            network.createArc([starting_edges_index + 4, starting_vertices + 2])
-            network.createVertex(starting_vertices + 3)
+            network.add_arc([starting_edges_index + 1, starting_vertices + 1])
+            network.add_arc([starting_edges_index + 2, starting_vertices + 1])
+            network.add_arc([starting_edges_index + 3, starting_vertices + 2])
+            network.add_arc([starting_edges_index + 4, starting_vertices + 2])
+            network.add_vertex(starting_vertices + 3)
             # print(starting_vertices + 3)
-            network.createArc([starting_vertices + 1, starting_vertices + 3])
-            network.createArc([starting_vertices + 2, starting_vertices + 3])
+            network.add_arc([starting_vertices + 1, starting_vertices + 3])
+            network.add_arc([starting_vertices + 2, starting_vertices + 3])
             bottom_vertex_index = starting_vertices + 3
             starting_vertices = starting_vertices + 3
             amount_of_output_edges = 1
@@ -532,8 +539,8 @@ class SimulationStudy:
                     arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
                 #CHECK TO SEE IF NEW EDGE HAS ADDED A CYCLE
                 temp_network = deepcopy(network)
-                temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-                temp_network.createArc([bottom_vertex_index, starting_vertices + 1])
+                temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+                temp_network.add_arc([bottom_vertex_index, starting_vertices + 1])
                 if self.checkDirectedCyclicity(temp_network) or self.checkNotBinary(temp_network, starting_vertices + 1):
                     amount_of_output_edges = amount_of_output_edges + 1
                 else:
@@ -553,29 +560,29 @@ class SimulationStudy:
             #     ## print("ARC THRESHOLD NOT ACHIEVED")
             starting_edges_index = starting_vertices
             for arcs in arcs_used:  # ADD THE VERTICES TO THE EDGES
-                network.addVertexOnEdge(starting_vertices + 1, arcs)
+                network.add_vertex_on_edge(starting_vertices + 1, arcs)
                 starting_vertices = starting_vertices + 1
             fc_starting_edges_index = starting_vertices
-            network.createVertex(starting_vertices + 1)
-            network.createArc([starting_edges_index + 1, starting_vertices + 1])
-            network.createArc([starting_edges_index + 2, starting_vertices + 1])
-            network.createVertex(starting_vertices + 2)
+            network.add_vertex(starting_vertices + 1)
+            network.add_arc([starting_edges_index + 1, starting_vertices + 1])
+            network.add_arc([starting_edges_index + 2, starting_vertices + 1])
+            network.add_vertex(starting_vertices + 2)
             # print("STARTING VERTICES + 2")
             # print(starting_vertices + 2)
-            network.createArc([starting_edges_index + 3, starting_vertices + 2])
-            network.createVertex(starting_vertices + 3)
-            network.createArc([starting_edges_index + 4, starting_vertices + 3])
-            network.createArc([starting_edges_index + 5, starting_vertices + 3])
-            network.createVertex(starting_vertices + 4)
+            network.add_arc([starting_edges_index + 3, starting_vertices + 2])
+            network.add_vertex(starting_vertices + 3)
+            network.add_arc([starting_edges_index + 4, starting_vertices + 3])
+            network.add_arc([starting_edges_index + 5, starting_vertices + 3])
+            network.add_vertex(starting_vertices + 4)
             # print("STARTING VERTICES + 2")
             # print(starting_vertices + 4)
-            network.createArc([starting_vertices + 1, starting_vertices + 4])
-            network.createArc([starting_vertices + 2, starting_vertices + 4])
-            network.createVertex(starting_vertices + 5)
+            network.add_arc([starting_vertices + 1, starting_vertices + 4])
+            network.add_arc([starting_vertices + 2, starting_vertices + 4])
+            network.add_vertex(starting_vertices + 5)
             # print("STARTING VERTICES + 2")
             # print(starting_vertices + 5)
-            network.createArc([starting_vertices + 2, starting_vertices + 5])
-            network.createArc([starting_vertices + 3, starting_vertices + 5])
+            network.add_arc([starting_vertices + 2, starting_vertices + 5])
+            network.add_arc([starting_vertices + 3, starting_vertices + 5])
             starting_vertices = starting_vertices + 5
             # print("STARTING VERTICES + 5")
             # print(starting_vertices)
@@ -588,8 +595,8 @@ class SimulationStudy:
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
             temp_network = deepcopy(network)
-            temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-            temp_network.createArc([fc_starting_edges_index + 4, starting_vertices + 1])
+            temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+            temp_network.add_arc([fc_starting_edges_index + 4, starting_vertices + 1])
             while self.checkDirectedCyclicity(temp_network):
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
@@ -597,8 +604,8 @@ class SimulationStudy:
                     random_arc_index_2 = random.randrange(len(arc_list) - 1)
                     arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
                 temp_network = deepcopy(network)
-                temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-                temp_network.createArc([fc_starting_edges_index + 4, starting_vertices + 1])
+                temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+                temp_network.add_arc([fc_starting_edges_index + 4, starting_vertices + 1])
             network = temp_network
             starting_vertices = starting_vertices + 1
             arcs_used.append(arc_to_be_subdivided_2)
@@ -609,8 +616,8 @@ class SimulationStudy:
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
             temp_network = deepcopy(network)
-            temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-            temp_network.createArc([fc_starting_edges_index + 5, starting_vertices + 1])
+            temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+            temp_network.add_arc([fc_starting_edges_index + 5, starting_vertices + 1])
             while self.checkDirectedCyclicity(temp_network):
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
@@ -618,8 +625,8 @@ class SimulationStudy:
                     random_arc_index_2 = random.randrange(len(arc_list) - 1)
                     arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
                 temp_network = deepcopy(network)
-                temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-                temp_network.createArc([fc_starting_edges_index + 5, starting_vertices + 1])
+                temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+                temp_network.add_arc([fc_starting_edges_index + 5, starting_vertices + 1])
             network = temp_network
             starting_vertices = starting_vertices + 1
             arcs_used.append(arc_to_be_subdivided_2)
@@ -630,11 +637,15 @@ class SimulationStudy:
 
     def checkDirectedCyclicity(self, network):
         networkXGraph = networkx.DiGraph()
-        for vertex in network.vertices:
-            networkXGraph.add_node(vertex)
-        for vertex in network.arcs:
-            for arc in vertex:
+        for key, value in network.vertex_dict.items():
+            networkXGraph.add_node(key)
+            for arc in value["arcs"]:
                 networkXGraph.add_edge(arc[0], arc[1])
+        # for vertex in network.vertices:
+        #     networkXGraph.add_node(vertex)
+        # for vertex in network.arcs:
+        #     for arc in vertex:
+        #         networkXGraph.add_edge(arc[0], arc[1])
         try:
             cycles = networkx.find_cycle(networkXGraph)
             return True
@@ -642,10 +653,18 @@ class SimulationStudy:
             return False
 
     def checkMultipleRoots(self, network):
-        for i in range(len(network.arcs)):
-            if len(network.arcs) > 0 and len(network.reverseArcs) == 0:
+        """
+
+        :type network: DAG
+        """
+        for key, value in network.vertex_dict.items():
+            if len(value["arcs"]) > 0 and len(value["reverseArcs"]) == 0:
                 return True
         return False
+        # for i in range(len(network.arcs)):
+        #     if len(network.arcs) > 0 and len(network.reverseArcs) == 0:
+        #         return True
+        # return False
 
     def addEdges(self, network, arc_list): # ADD 20% MORE EDGES
         network_copy = deepcopy(network)
@@ -653,7 +672,7 @@ class SimulationStudy:
 
         Parameters
         ----------
-        network : PhylogeneticNetwork
+        network : DAG
         """
         amount_of_edges_to_be_added = math.ceil(len(arc_list) * 0.2)
         edges_subdivided = []
@@ -680,17 +699,17 @@ class SimulationStudy:
                 while random_number2 == random_number1:
                     random_number2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided2 = arc_list[random_number2]
-            temp_network.addVertexOnEdge(starting_amount_of_vertices + 1, arc_to_be_subdivided1)
-            temp_network.addVertexOnEdge(starting_amount_of_vertices + 2, arc_to_be_subdivided2)
+            temp_network.add_vertex_on_edge(starting_amount_of_vertices + 1, arc_to_be_subdivided1)
+            temp_network.add_vertex_on_edge(starting_amount_of_vertices + 2, arc_to_be_subdivided2)
             edges_subdivided.append([arc_to_be_subdivided1[0], starting_amount_of_vertices + 1])
             edges_subdivided.append([starting_amount_of_vertices + 1, arc_to_be_subdivided1[1]])
             #CHECK NETWORK CYCLICITY
-            temp_network.createArc([starting_amount_of_vertices + 1, starting_amount_of_vertices + 2])
+            temp_network.add_arc([starting_amount_of_vertices + 1, starting_amount_of_vertices + 2])
             edges_subdivided.append([starting_amount_of_vertices + 1, starting_amount_of_vertices + 2])
             if self.checkDirectedCyclicity(temp_network):
                 temp_network.arcs[starting_amount_of_vertices + 1].remove([starting_amount_of_vertices + 1, starting_amount_of_vertices + 2])
                 temp_network.reverseArcs[starting_amount_of_vertices + 2].remove([starting_amount_of_vertices + 2, starting_amount_of_vertices + 1])
-                temp_network.createArc([starting_amount_of_vertices + 2, starting_amount_of_vertices + 1])
+                temp_network.add_arc([starting_amount_of_vertices + 2, starting_amount_of_vertices + 1])
                 edges_subdivided.remove([starting_amount_of_vertices + 1, starting_amount_of_vertices + 2])
                 edges_subdivided.append([starting_amount_of_vertices + 2, starting_amount_of_vertices + 1])
                 if self.checkDirectedCyclicity(temp_network):
@@ -717,12 +736,12 @@ class SimulationStudy:
     def addEdges2(self, network, arc_list):
         """
 
-        :type network: PhylogeneticNetwork
+        :type network: DAG
         """
 
         network_copy = deepcopy(network)
 
-        leaf_set = network_copy.getAllLeafs()
+        leaf_set = network_copy.get_all_leaves()
 
         amount_of_edges_to_be_added = math.ceil(len(network_copy.vertices) * 0.3)
         edges_subdivided = []
@@ -747,30 +766,34 @@ class SimulationStudy:
                 random_number2 = vertex_set[random.randrange(len(vertex_set) - 1)]
 
             #FIND ARCS THAT ARE GOING TO BE SUBDIVIDED
-            arc_subdivide1 = network_copy.reverseArcs[random_number1][0]
-            arc_subdivide2 = network_copy.reverseArcs[random_number2][0]
+            arc_subdivide1 = network_copy.vertex_dict[random_number1]["reverseArcs"][0]
+            arc_subdivide2 = network_copy.vertex_dict[random_number2]["reverseArcs"][0]
+            # arc_subdivide1 = network_copy.reverseArcs[random_number1][0]
+            # arc_subdivide2 = network_copy.reverseArcs[random_number2][0]
 
             #ADD TWO NEW VERTICES
-            network_copy.vertices.append(starting_amount_of_vertices + 1)
-            network_copy.vertices.append(starting_amount_of_vertices + 2)
+            network_copy.add_vertex(starting_amount_of_vertices + 1)
+            network_copy.add_vertex(starting_amount_of_vertices + 2)
+            # network_copy.vertices.append(starting_amount_of_vertices + 1)
+            # network_copy.vertices.append(starting_amount_of_vertices + 2)
 
             #REMOVE SUBDIVIDED ARCS
-            network_copy.removeArc([arc_subdivide1[1], arc_subdivide1[0]])
-            network_copy.removeArc([arc_subdivide2[1], arc_subdivide2[0]])
+            network_copy.remove_arc([arc_subdivide1[1], arc_subdivide1[0]])
+            network_copy.remove_arc([arc_subdivide2[1], arc_subdivide2[0]])
 
             #CREATE ARCS FROM ARC SUBDIVIDED TO NEW VERTICES
-            network_copy.createArc([arc_subdivide1[1], starting_amount_of_vertices + 1])
-            network_copy.createArc([arc_subdivide2[1], starting_amount_of_vertices + 2])
+            network_copy.add_arc([arc_subdivide1[1], starting_amount_of_vertices + 1])
+            network_copy.add_arc([arc_subdivide2[1], starting_amount_of_vertices + 2])
 
             #CREATE ARCS FROM NEW VERTICES TO ARC SUBDIVIDED
-            network_copy.createArc([starting_amount_of_vertices + 1, arc_subdivide1[0]])
-            network_copy.createArc([starting_amount_of_vertices + 2, arc_subdivide2[0]])
+            network_copy.add_arc([starting_amount_of_vertices + 1, arc_subdivide1[0]])
+            network_copy.add_arc([starting_amount_of_vertices + 2, arc_subdivide2[0]])
 
             #CREATE ARC BETWEEN NEW VERTICES
             if arc_subdivide1[0] > arc_subdivide2[0]:
-                network_copy.createArc([starting_amount_of_vertices + 2, starting_amount_of_vertices + 1])
+                network_copy.add_arc([starting_amount_of_vertices + 2, starting_amount_of_vertices + 1])
             else:
-                network_copy.createArc([starting_amount_of_vertices + 1, starting_amount_of_vertices + 2])
+                network_copy.add_arc([starting_amount_of_vertices + 1, starting_amount_of_vertices + 2])
 
             starting_amount_of_vertices = starting_amount_of_vertices + 2
 
@@ -782,16 +805,18 @@ class SimulationStudy:
 
         Parameters
         ----------
-        network : PhylogeneticNetwork
+        network : DAG
         """
-        if type(network.reverseArcs[vertex]) == list:
-            incoming_arcs = len(network.reverseArcs[vertex])
-        else:
-            incoming_arcs = 1
-        if type(network.arcs[vertex]) == list:
-            outgoing_arcs = len(network.arcs[vertex])
-        else:
-            outgoing_arcs = 1
+        incoming_arcs = len(network.vertex_dict[vertex]["reverseArcs"])
+        outgoing_arcs = len(network.vertex_dict[vertex]["arcs"])
+        # if type(network.reverseArcs[vertex]) == list:
+        #     incoming_arcs = len(network.reverseArcs[vertex])
+        # else:
+        #     incoming_arcs = 1
+        # if type(network.arcs[vertex]) == list:
+        #     outgoing_arcs = len(network.arcs[vertex])
+        # else:
+        #     outgoing_arcs = 1
         #incoming_arcs = len(network.reverseArcs[vertex])
         #outgoing_arcs = len(network.arcs[vertex])
         total_arcs = incoming_arcs + outgoing_arcs
@@ -808,14 +833,14 @@ class SimulationStudy:
 
         Parameters
         ----------
-        network : PhylogeneticNetwork
+        network : DAG
         """
-        arc_list = []
-        for vertex in network.arcs:
-            if len(vertex) > 0:
-                for arc in vertex:
-                    arc_list.append(arc)
-        return arc_list
+        # arc_list = []
+        # for vertex in network.arcs:
+        #     if len(vertex) > 0:
+        #         for arc in vertex:
+        #             arc_list.append(arc)
+        return network.get_all_arcs()
         
     def InputFromNEXUSFile2(self, filepath):
         #root_dir = str(pathlib.Path(__file__).parent.parent.resolve()) + '/NEXUS Files'
@@ -1028,7 +1053,7 @@ class SimulationStudy:
             for i in range(1, vertex_required + 1):
                 vertex_list.append(i)
 
-            ConstructedNetwork = PhylogeneticNetwork(vertex_list, [], 1)
+            ConstructedNetwork = DAG(vertex_list, [], {}, 1)
 
             self.currentVertex = 1
             self.leafDict = {}
@@ -1062,7 +1087,7 @@ class SimulationStudy:
                         lowest_vertex = value[0]
                 flattened_item.remove([lowest_vertex, lowest_value])
                 for value in flattened_item:
-                    ConstructedNetwork.createArc([value[0], lowest_vertex])
+                    ConstructedNetwork.add_arc([value[0], lowest_vertex])
 
             #ConstructedNetwork.displayGraph()
 
@@ -1130,7 +1155,7 @@ class SimulationStudy:
             # print("VERTEX LIST")
             # print(vertex_list)
 
-            ConstructedNetwork = PhylogeneticNetwork(vertex_list, [[0, 1]], 0)
+            ConstructedNetwork = DAG(vertex_list, [[0, 1]], {}, 0)
 
             # print("CONSTRUCTED NETWORK VERTEX LIST")
             # print(ConstructedNetwork.vertices)
@@ -1160,7 +1185,7 @@ class SimulationStudy:
     def NexusNetworkFrameRecursiveSearch(self, frame, vertices_on_each_level, previousVertex, counter, ConstructedNetwork):
         for i in range(len(frame)):
             #self.levelDict[counter] = previousVertex
-            ConstructedNetwork.createArc([previousVertex, self.currentVertex + 1])
+            ConstructedNetwork.add_arc([previousVertex, self.currentVertex + 1])
             self.currentVertex = self.currentVertex + 1
             if type(frame[i]) == str:
                 data = [self.currentVertex, counter]
@@ -1198,7 +1223,7 @@ class SimulationStudy:
             #print(self.leafDict)
             #print("VERTICES ON EACH LEVEL")
             #print(vertices_on_each_level)
-            ConstructedNetwork.createArc([previousVertex, self.currentVertex + 1])
+            ConstructedNetwork.add_arc([previousVertex, self.currentVertex + 1])
             self.currentVertex = self.currentVertex + 1
             if type(frame[i]) != list and type(frame[i]) != numpy.ndarray:
                 self.leafDict[frame[i]] = self.currentVertex
@@ -1252,38 +1277,38 @@ class SimulationStudy:
                 line.append(i) # NETWORK NUM
                 line.append(len(input_network_array[i].vertices)) # NUMBER OF VERTICES IN NETWORK
                 line.append(len(self.getAllArcsFromNetwork(input_network_array[i]))) # NUMBER OF ARCS IN NETWORK
-                line.append(len(input_network_array[i].getAllLeafs())) # AMOUNT OF LEAVES IN NETWORK
-                isBinaryInput = input_network_array[i].isBinary()
+                line.append(len(input_network_array[i].get_all_leaves())) # AMOUNT OF LEAVES IN NETWORK
+                isBinaryInput = input_network_array[i].is_binary()
                 line.append(isBinaryInput) # IF INPUT NETWORK IS BINARY
                 if isBinaryInput:
-                    line.append(input_network_array[i].checkTreeBasedNonBinary2()) # IF INPUT NETWORK IS TREEBASED
+                    line.append(input_network_array[i].check_tree_based_non_binary()) # IF INPUT NETWORK IS TREEBASED
                 else:
-                    line.append(input_network_array[i].checkTreeBasedNonBinary2()) # IF OUTPUT NETWORK IS TREEBASED
+                    line.append(input_network_array[i].check_tree_based_non_binary()) # IF OUTPUT NETWORK IS TREEBASED
                 line.append(len(output_network_array_pp[i].vertices))  # NUMBER OF VERTICES IN NETWORK
                 line.append(len(self.getAllArcsFromNetwork(output_network_array_pp[i])))  # NUMBER OF ARCS IN NETWORK
-                line.append(len(output_network_array_pp[i].getAllLeafs()))  # AMOUNT OF LEAVES IN NETWORK
-                isBinaryInput = output_network_array_pp[i].isBinary()
+                line.append(len(output_network_array_pp[i].get_all_leaves()))  # AMOUNT OF LEAVES IN NETWORK
+                isBinaryInput = output_network_array_pp[i].is_binary()
                 line.append(isBinaryInput)  # IF INPUT NETWORK IS BINARY
-                if isBinaryInput:
-                    line.append(output_network_array_pp[i].checkTreeBasedBinary())  # IF OUTPUT NETWORK IS TREEBASED
-                else:
-                    line.append(output_network_array_pp[i].checkTreeBasedNonBinary2())  # IF OUTPUT NETWORK IS TREEBASED
+                # if isBinaryInput:
+                #     line.append(output_network_array_pp[i].check_tree_based_binary())  # IF OUTPUT NETWORK IS TREEBASED
+                # else:
+                line.append(output_network_array_pp[i].check_tree_based_non_binary())  # IF OUTPUT NETWORK IS TREEBASED
                 line.append(len(output_network_array_fold[i].vertices))  # NUMBER OF VERTICES IN NETWORK
                 line.append(len(self.getAllArcsFromNetwork(output_network_array_fold[i])))  # NUMBER OF ARCS IN NETWORK
-                line.append(len(output_network_array_fold[i].getAllLeafs()))  # AMOUNT OF LEAVES IN NETWORK
-                isBinaryInput = output_network_array_fold[i].isBinary()
+                line.append(len(output_network_array_fold[i].get_all_leaves()))  # AMOUNT OF LEAVES IN NETWORK
+                isBinaryInput = output_network_array_fold[i].is_binary()
                 line.append(isBinaryInput)  # IF INPUT NETWORK IS BINARY
-                if isBinaryInput:
-                    line.append(output_network_array_fold[i].checkTreeBasedBinary())  # IF OUTPUT NETWORK IS TREEBASED
-                else:
-                    line.append(output_network_array_fold[i].checkTreeBasedNonBinary2())  # IF OUTPUT NETWORK IS TREEBASED
+                # if isBinaryInput:
+                #     line.append(output_network_array_fold[i].check_tree_based_binary())  # IF OUTPUT NETWORK IS TREEBASED
+                # else:
+                line.append(output_network_array_fold[i].check_tree_based_non_binary())  # IF OUTPUT NETWORK IS TREEBASED
                 line.append(len(output_network_array_matching[i].vertices))
                 line.append(len(self.getAllArcsFromNetwork(output_network_array_matching[i])))
-                line.append(len(output_network_array_matching[i].getAllLeafs()))
-                line.append(output_network_array_matching[i].isBinary())
-                line.append(output_network_array_matching[i].checkTreeBasedNonBinary2())
-                line.append(output_network_array_tc[i].isTreeChild()) # IS TREE CHILD
-                line.append(output_network_array_n[i].isNormal()) # IS NORMAL
+                line.append(len(output_network_array_matching[i].get_all_leaves()))
+                line.append(output_network_array_matching[i].is_binary())
+                line.append(output_network_array_matching[i].check_tree_based_non_binary())
+                line.append(output_network_array_tc[i].is_tree_child()) # IS TREE CHILD
+                line.append(output_network_array_n[i].is_normal()) # IS NORMAL
                 line.append(measure_data[0][i][0]) # MEASURE 1 FOLD NETWORK
                 line.append(measure_data[0][i][1]) # MEASURE 1 PP NETWORK
                 line.append(measure_data[0][i][2]) # MEASURE 1 MATCHING NETWORK
@@ -1291,15 +1316,15 @@ class SimulationStudy:
                 # line.append(measure_data[1][i][1]) # MEASURE 2 PP NETWORK
                 # line.append(measure_data[2][i][0]) # MEASURE 3 FOLD NETWORK
                 # line.append(measure_data[2][i][1]) # MEASURE 3 PP NETWORK
-                line.append(len(input_network_array[i].getReticulationVertices()))
-                line.append(len(output_network_array_pp[i].getReticulationVertices()))
-                line.append(len(output_network_array_fold[i].getReticulationVertices()))
-                line.append(len(input_network_array[i].getTreeVertices()))
-                line.append(len(output_network_array_pp[i].getTreeVertices()))
-                line.append(len(output_network_array_fold[i].getTreeVertices()))
-                line.append(str(input_network_array[i].getPloidyLevels()[1]))
-                line.append(str(output_network_array_pp[i].getPloidyLevels()[1]))
-                line.append(str(output_network_array_fold[i].getPloidyLevels()[1]))
+                line.append(len(input_network_array[i].get_reticulation_vertices()))
+                line.append(len(output_network_array_pp[i].get_reticulation_vertices()))
+                line.append(len(output_network_array_fold[i].get_reticulation_vertices()))
+                line.append(len(input_network_array[i].get_tree_vertices()))
+                line.append(len(output_network_array_pp[i].get_tree_vertices()))
+                line.append(len(output_network_array_fold[i].get_tree_vertices()))
+                line.append(str(input_network_array[i].get_ploidy_levels()[input_network_array[i].root]))
+                line.append(str(output_network_array_pp[i].get_ploidy_levels()[output_network_array_pp[i].root]))
+                line.append(str(output_network_array_fold[i].get_ploidy_levels()[output_network_array_fold[i].root]))
                 line.append(hybrid_number_measure(input_network_array[i]))
                 line.append(hybrid_number_measure(output_network_array_pp[i]))
                 line.append(hybrid_number_measure(output_network_array_fold[i]))
@@ -1311,24 +1336,36 @@ class SimulationStudy:
                 # if len(input_network_array[i].getAllLeafs()) != len(output_network_array_fold[i].getAllLeafs()):
                 #     print("ENEWICK OF BROKEN NETwORK")
                 #     print(self.networkToENewickLine(input_network_array[i]))
-                if not output_network_array_matching[i].checkTreeBasedNonBinary2():
+                if len(output_network_array_pp[i].get_all_leaves()) != 10:
+                    print("ENEWICK POLYPLOIDY BROKEN NETWORK")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    print(self.networkToENewickLine(output_network_array_pp[i]))
+                    # print(output_network_array_pp[i].display_graph())
+                    print(output_network_array_pp[i].get_all_leaves())
+
+                if not output_network_array_pp[i].check_tree_based_non_binary():
+                    print("ENEWICK OF BROKEN NETWORK")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    print(self.networkToENewickLine(output_network_array_pp[i]))
+
+                if not output_network_array_matching[i].check_tree_based_non_binary():
                     print("ENEWICK OF BROKEN NETWORK")
                     print(self.networkToENewickLine(input_network_array[i]))
                     print(self.networkToENewickLine(output_network_array_matching[i]))
                     print(input_network_array[i].vertices)
-                    print(input_network_array[i].getAllArcs())
+                    print(input_network_array[i].get_all_arcs())
                     print(input_network_array[i].root)
-                if input_network_array[i].checkTreeBasedNonBinary2():
+                if input_network_array[i].check_tree_based_non_binary():
                     print("ENEWICK OF BROKEN INPUT NETWORK")
                     print(self.networkToENewickLine(input_network_array[i]))
-                    input_network_array[i].displayGraph()
-                    input_network_array[i].makeBiPartiteGraph().displayGraph()
+                    input_network_array[i].display_graph()
+                    input_network_array[i].make_bipartite_graph().display_graph()
                     break
-                if not output_network_array_tc[i].isTreeChild():
+                if not output_network_array_tc[i].is_tree_child():
                     print("ENEWICK OF BROKEN INPUT NETWORK")
                     print(self.networkToENewickLine(input_network_array[i]))
                     print(self.networkToENewickLine(output_network_array_tc[i]))
-                    output_network_array_tc[i].displayGraph()
+                    output_network_array_tc[i].display_graph()
 
                 csv_writer.writerow(line)
             print("SAVED DATA TO SimStudyDava.csv")
@@ -1337,7 +1374,7 @@ class SimulationStudy:
     def networkToENewickLine(self, network):
         """
 
-        :type network: PhylogeneticNetwork
+        :type network: DAG
         """
 
         # network.displayGraph()
@@ -1346,7 +1383,7 @@ class SimulationStudy:
             network.vertices.remove(0)
 
         label_array = []
-        for key, value in network.taxDict.items():
+        for key, value in network.taxa.items():
             tup = (int(key), value)
             label_array.append(tup)
 
@@ -1355,7 +1392,7 @@ class SimulationStudy:
         #     temp_arc = (arc[0], arc[1])
         #     arc_array.append(temp_arc)
 
-        leaf_set = network.getAllLeafs()
+        leaf_set = network.get_all_leaves()
 
         phyx_network = phylox.DiNetwork(labels=label_array)
         for vertex in network.vertices:
@@ -1363,7 +1400,7 @@ class SimulationStudy:
             #     phyx_network.add_node(vertex, label=str(network.taxDict[vertex]))
             # else:
             phyx_network.add_node(vertex)
-        for arc in network.getAllArcs():
+        for arc in network.get_all_arcs():
             phyx_network.add_edge(arc[0], arc[1])
 
         # for key, value in network.taxDict.items():
@@ -1416,21 +1453,21 @@ class SimulationStudy:
                 tax_dict[converted_key] = value
 
 
-        finished_network = PhylogeneticNetwork(vertex_list, arc_list, 1, tax_dict)
+        finished_network = DAG(vertex_list, arc_list, tax_dict, 1)
 
         return finished_network
 
     def addForbiddenConfigurations2(self, tree):
         """
 
-        :type tree: PhylogeneticNetwork
+        :type tree: DAG
         """
 
         network = deepcopy(tree)
 
-        arc_list = tree.getAllArcs()
+        arc_list = tree.get_all_arcs()
 
-        leaf_list = tree.getAllLeafs()
+        leaf_list = tree.get_all_leaves()
 
         random_number = random.choice(['1', '2'])
         # random_number = '1'
@@ -1450,9 +1487,10 @@ class SimulationStudy:
                 while vertex_subdivided in leaf_list:
                     random_vertex_index = random.randrange(len(network.vertices) - 1)
                     vertex_subdivided = network.vertices[random_vertex_index]
-                arc_below = network.arcs[vertex_subdivided][0]
+                arc_below = network.vertex_dict[vertex_subdivided]["arcs"][0]
+                # arc_below = network.arcs[vertex_subdivided][0]
                 vertices_used.append(vertex_subdivided)
-                network.addVertexOnEdge(starting_vertices + 1, arc_below)
+                network.add_vertex_on_edge(starting_vertices + 1, arc_below)
                 starting_vertices = starting_vertices + 1
 
             # for i in range(amount_of_input_edges):
@@ -1475,18 +1513,18 @@ class SimulationStudy:
 
             #MAKE FORBIDDEN CONFIGURATION
 
-            network.createVertex(starting_vertices + 1)
-            network.createVertex(starting_vertices + 2)
-            network.createVertex(starting_vertices + 3)
+            network.add_vertex(starting_vertices + 1)
+            network.add_vertex(starting_vertices + 2)
+            network.add_vertex(starting_vertices + 3)
 
-            network.createArc([starting_edges_index + 1, starting_vertices + 1])
-            network.createArc([starting_edges_index + 2, starting_vertices + 1])
+            network.add_arc([starting_edges_index + 1, starting_vertices + 1])
+            network.add_arc([starting_edges_index + 2, starting_vertices + 1])
 
-            network.createArc([starting_edges_index + 3, starting_vertices + 2])
-            network.createArc([starting_edges_index + 4, starting_vertices + 2])
+            network.add_arc([starting_edges_index + 3, starting_vertices + 2])
+            network.add_arc([starting_edges_index + 4, starting_vertices + 2])
 
-            network.createArc([starting_vertices + 1, starting_vertices + 3])
-            network.createArc([starting_vertices + 2, starting_vertices + 3])
+            network.add_arc([starting_vertices + 1, starting_vertices + 3])
+            network.add_arc([starting_vertices + 2, starting_vertices + 3])
 
             # network.createArc([starting_vertices + 3, starting_edges_index + 5])
 
@@ -1512,18 +1550,21 @@ class SimulationStudy:
             leaf_vertex_index = random.randrange(len(leaf_list) - 1)
             leaf_vertex = leaf_list[leaf_vertex_index]
 
-            arc_above = network.reverseArcs[leaf_vertex][0]
+            arc_above = network.vertex_dict[leaf_vertex]["reverseArcs"][0]
+
+            # arc_above = network.reverseArcs[leaf_vertex][0]
             arc_above = [arc_above[1], arc_above[0]]
 
             while arc_above in arcs_used:
                 leaf_vertex_index = random.randrange(len(leaf_list) - 1)
                 leaf_vertex = leaf_list[leaf_vertex_index]
 
-                arc_above = network.reverseArcs[leaf_vertex][0]
+                arc_above = network.vertex_dict[leaf_vertex]["reverseArcs"][0]
+                # arc_above = network.reverseArcs[leaf_vertex][0]
                 arc_above = [arc_above[1], arc_above[0]]
 
-            network.addVertexOnEdge(starting_vertices + 5, arc_above)
-            network.createArc([starting_vertices + 3, starting_vertices + 5])
+            network.add_vertex_on_edge(starting_vertices + 5, arc_above)
+            network.add_arc([starting_vertices + 3, starting_vertices + 5])
 
             # network.displayGraph()
 
@@ -1571,29 +1612,29 @@ class SimulationStudy:
             #     ## print("ARC THRESHOLD NOT ACHIEVED")
             starting_edges_index = starting_vertices
             for arcs in arcs_used:  # ADD THE VERTICES TO THE EDGES
-                network.addVertexOnEdge(starting_vertices + 1, arcs)
+                network.add_vertex_on_edge(starting_vertices + 1, arcs)
                 starting_vertices = starting_vertices + 1
             fc_starting_edges_index = starting_vertices
-            network.createVertex(starting_vertices + 1)
-            network.createArc([starting_edges_index + 1, starting_vertices + 1])
-            network.createArc([starting_edges_index + 2, starting_vertices + 1])
-            network.createVertex(starting_vertices + 2)
+            network.add_vertex(starting_vertices + 1)
+            network.add_arc([starting_edges_index + 1, starting_vertices + 1])
+            network.add_arc([starting_edges_index + 2, starting_vertices + 1])
+            network.add_vertex(starting_vertices + 2)
             # print("STARTING VERTICES + 2")
             # print(starting_vertices + 2)
-            network.createArc([starting_edges_index + 3, starting_vertices + 2])
-            network.createVertex(starting_vertices + 3)
-            network.createArc([starting_edges_index + 4, starting_vertices + 3])
-            network.createArc([starting_edges_index + 5, starting_vertices + 3])
-            network.createVertex(starting_vertices + 4)
+            network.add_arc([starting_edges_index + 3, starting_vertices + 2])
+            network.add_vertex(starting_vertices + 3)
+            network.add_arc([starting_edges_index + 4, starting_vertices + 3])
+            network.add_arc([starting_edges_index + 5, starting_vertices + 3])
+            network.add_vertex(starting_vertices + 4)
             # print("STARTING VERTICES + 2")
             # print(starting_vertices + 4)
-            network.createArc([starting_vertices + 1, starting_vertices + 4])
-            network.createArc([starting_vertices + 2, starting_vertices + 4])
-            network.createVertex(starting_vertices + 5)
+            network.add_arc([starting_vertices + 1, starting_vertices + 4])
+            network.add_arc([starting_vertices + 2, starting_vertices + 4])
+            network.add_vertex(starting_vertices + 5)
             # print("STARTING VERTICES + 2")
             # print(starting_vertices + 5)
-            network.createArc([starting_vertices + 2, starting_vertices + 5])
-            network.createArc([starting_vertices + 3, starting_vertices + 5])
+            network.add_arc([starting_vertices + 2, starting_vertices + 5])
+            network.add_arc([starting_vertices + 3, starting_vertices + 5])
             starting_vertices = starting_vertices + 5
             # print("STARTING VERTICES + 5")
             # print(starting_vertices)
@@ -1606,8 +1647,8 @@ class SimulationStudy:
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
             temp_network = deepcopy(network)
-            temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-            temp_network.createArc([fc_starting_edges_index + 4, starting_vertices + 1])
+            temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+            temp_network.add_arc([fc_starting_edges_index + 4, starting_vertices + 1])
             while self.checkDirectedCyclicity(temp_network):
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
@@ -1615,8 +1656,8 @@ class SimulationStudy:
                     random_arc_index_2 = random.randrange(len(arc_list) - 1)
                     arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
                 temp_network = deepcopy(network)
-                temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-                temp_network.createArc([fc_starting_edges_index + 4, starting_vertices + 1])
+                temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+                temp_network.add_arc([fc_starting_edges_index + 4, starting_vertices + 1])
             network = temp_network
             starting_vertices = starting_vertices + 1
             arcs_used.append(arc_to_be_subdivided_2)
@@ -1627,8 +1668,8 @@ class SimulationStudy:
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
             temp_network = deepcopy(network)
-            temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-            temp_network.createArc([fc_starting_edges_index + 5, starting_vertices + 1])
+            temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+            temp_network.add_arc([fc_starting_edges_index + 5, starting_vertices + 1])
             while self.checkDirectedCyclicity(temp_network):
                 random_arc_index_2 = random.randrange(len(arc_list) - 1)
                 arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
@@ -1636,11 +1677,252 @@ class SimulationStudy:
                     random_arc_index_2 = random.randrange(len(arc_list) - 1)
                     arc_to_be_subdivided_2 = arc_list[random_arc_index_2]
                 temp_network = deepcopy(network)
-                temp_network.addVertexOnEdge(starting_vertices + 1, arc_to_be_subdivided_2)
-                temp_network.createArc([fc_starting_edges_index + 5, starting_vertices + 1])
+                temp_network.add_vertex_on_edge(starting_vertices + 1, arc_to_be_subdivided_2)
+                temp_network.add_arc([fc_starting_edges_index + 5, starting_vertices + 1])
             network = temp_network
             starting_vertices = starting_vertices + 1
             arcs_used.append(arc_to_be_subdivided_2)
             return network
+
+
+
+    def runGeneratedSimStudyNoFold(self):
+        tree_list = self.getTreesFromFiles()
+        input_networks = []
+        output_networks_fold = []
+        output_networks_pp = []
+        output_networks_matching = []
+        output_networks_tc = []
+        output_networks_n = []
+        timings = []
+        measure1_array = []
+        measure2_array = []
+        measure3_array = []
+        measure4_array = []
+        fc_array = [1]
+        for fc in fc_array:
+            list_of_tree_indices = []
+            ntb_indices = []
+            for i in range(len(tree_list)):
+                list_of_tree_indices.append(i)
+            amount_of_tbn = math.ceil(len(tree_list) * 0.3)
+            for i in range(amount_of_tbn):
+                random_network = random.choice(list_of_tree_indices)
+                ntb_indices.append(random_network)
+                list_of_tree_indices.remove(random_network)
+
+            for i in range(len(tree_list)):
+                tree = tree_list[i][0]
+                # tree.displayGraph()
+                # print(tree.vertices)
+                print(i)
+                arc_list = self.getAllArcsFromNetwork(tree)
+                #ADD ARCS TO NETWORK
+                network = self.addEdges2(tree, arc_list)
+                # choice = random.choice(['1', '2'])
+                # print("CHOICE")
+                # print(choice)
+                # if choice != '1' and choice != '2':
+                #     raise Exception
+                # if i in ntb_indices:
+                # network.displayGraph()
+                arc_list = self.getAllArcsFromNetwork(network)
+                # for repeat in range(int(fc)):
+                for j in range(1, 2):
+                    network = self.addForbiddenConfigurations2(network)
+                # print("FORBIDDEN CONFIGURATION")
+                # network.displayGraph()
+
+                #PUT NETWORK INTO TREESPOTTER AND RETURN OUTPUT
+
+                # if fc == 2:
+                #     network.displayGraph()
+
+                converted_network = self.readENewickLine(self.networkToENewickLine(network))
+
+                input_networks.append(converted_network)
+
+                input_fold = deepcopy(converted_network)
+                input_pp = deepcopy(converted_network)
+                input_matching = deepcopy(converted_network)
+                input_tc = deepcopy(converted_network)
+                input_n = deepcopy(converted_network)
+
+                fold_start_time = time.time()
+                # output_networks_fold.append(TreeSpotterAlgorithm(input_fold).start_algorithm(False))
+                # output_networks_fold.append(TreeSpotterAlgorithm(input_fold).minimised_folding_algorithm(input_fold))
+                fold_end_time = time.time()
+                polyploidy_start_time = time.time()
+                # output_networks_pp.append(TreeSpotterAlgorithm(input_pp).start_algorithm(True))
+                output_networks_pp.append(TreeSpotterAlgorithm(input_pp).minimised_ployploidy_algorithm(input_pp))
+                polyploidy_end_time = time.time()
+                matching_algorithm_start_time = time.time()
+                output_m = TreeSpotterAlgorithm(input_matching).bipartite_graph_algorithm(input_matching)
+                output_networks_matching.append(output_m)
+                matching_algorithm_end_time = time.time()
+                tree_child_start_time = time.time()
+                output_tc = TreeSpotterAlgorithm(output_m).tree_based_to_tree_child_algorithm(output_m)
+                # output_tc = TreeSpotterAlgorithm(input_tc).tree_based_to_tree_child_algorithm(input_tc)
+                output_networks_tc.append(output_tc)
+                tree_child_end_time = time.time()
+                normal_start_time = time.time()
+                output_networks_n.append(TreeSpotterAlgorithm(output_m).tree_based_to_normal_algorithm(output_m))
+                # output_networks_n.append(TreeSpotterAlgorithm(input_n).tree_based_to_normal_algorithm(input_n))
+                normal_end_time = time.time()
+
+                fold_total_time = fold_end_time - fold_start_time
+                polyploidy_total_time = polyploidy_end_time - polyploidy_start_time
+                matching_algorithm_total_time = matching_algorithm_end_time - matching_algorithm_start_time
+                tree_child_total_time = tree_child_end_time - tree_child_start_time
+                normal_total_time = normal_end_time - normal_start_time
+                timings.append([fold_total_time, polyploidy_total_time, matching_algorithm_total_time, tree_child_total_time, normal_total_time])
+
+                print("FOLD TIME")
+                print(fold_total_time)
+                print("POLYPLOIDY TIME")
+                print(polyploidy_total_time)
+
+            for i in range(len(input_networks)):
+                measure1_array.append([measure1(output_networks_pp[i], input_networks[i]), measure1(output_networks_matching[i], input_networks[i])])
+                measure2_array.append([measure2(output_networks_pp[i], input_networks[i])])
+                measure3_array.append([measure3(output_networks_pp[i], input_networks[i])])
+                measure4_array.append([timings[i][0], timings[i][1], timings[i][2]])
+                #measure4_array.append([measure4(output_networks_fold[i], input_networks[i]), measure4(output_networks_pp[i], input_networks[i])])
+
+        measure_data_array = [measure1_array, measure2_array, measure3_array, measure4_array]
+
+        self.saveDataToCSVNoFolding(input_networks, output_networks_pp, output_networks_fold, output_networks_matching, output_networks_tc, output_networks_n, measure_data_array)
+
+        return measure1_array, measure2_array, measure3_array, measure4_array
+
+    def saveDataToCSVNoFolding(self, input_network_array, output_network_array_pp, output_network_array_fold, output_network_array_matching, output_network_array_tc, output_network_array_n, measure_data):
+        database = [input_network_array, output_network_array_pp, output_network_array_fold, output_network_array_matching, output_network_array_tc, output_network_array_n, measure_data]
+        self.saveDatabase(database)
+        with open('SimStudyDataTemp4.csv', 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            # csv_writer.writerow(["NETWORK NUMBER", "V(N)", "A(N)", "L(N)", "isBinary", "isTreeBased",
+            #                      "V(PN)", "A(PN)", "L(PN)", "isBinary", "isTreeBased",
+            #                      "V(FN)", "A(FN)", "L(FN)", "isBinary", "isTreeBased",
+            #                      "Measure1 FOLD", "Measure1 PP", "Measure2 FOLD", "Measure2 PP",
+            #                      "Measure3 FOLD", "Measure3 PP", "RV Input", "RV PN", "RV FN",
+            #                      "PL Input", "PL PN", "PL FN"])
+            csv_writer.writerow(["NETWORK NUMBER", "V(N)", "A(N)", "L(N)", "isBinary", "isTreeBased",
+                                 "V(PN)", "A(PN)", "L(PN)", "isBinary", "isTreeBased",
+                                 "V(FN)", "A(FN)", "L(FN)", "isBinary", "isTreeBased",
+                                 "V(MN)", "A(MN)", "L(MN)", "isBinary", "isTreeBased",
+                                 "isTreeChild", "isNormal",
+                                 "Measure1 FOLD", "Measure1 PP", "Measure1 Matching", "RV Input", "RV PN", "RV FN",
+                                 "TV Input", "TV PN", "TV FN",
+                                 "PL Input", "PL PN", "PL FN",
+                                 "HN Input", "HN PN", "HN FN",
+                                 "FOLD TIME", "PP TIME", "MATCHING TIME"])
+            for i in range(len(input_network_array)):
+                # if len(output_network_array_fold[i].getAllLeafs()) != len(input_network_array[i].getAllLeafs()):
+                #     print("INPUT NETWORK VERTICES")
+                #     print(input_network_array[i].vertices)
+                #     print("INPUT NETWORK ARCS")
+                #     print(input_network_array[i].getAllArcs())
+                #     input_network_array[i].displayGraph()
+                #     time.sleep(2)
+                #     output_network_array_fold[i].displayGraph()
+                #     break
+                line = []
+                line.append(i) # NETWORK NUM
+                line.append(len(input_network_array[i].vertices)) # NUMBER OF VERTICES IN NETWORK
+                line.append(len(self.getAllArcsFromNetwork(input_network_array[i]))) # NUMBER OF ARCS IN NETWORK
+                line.append(len(input_network_array[i].get_all_leaves())) # AMOUNT OF LEAVES IN NETWORK
+                isBinaryInput = input_network_array[i].is_binary()
+                line.append(isBinaryInput) # IF INPUT NETWORK IS BINARY
+                if isBinaryInput:
+                    line.append(input_network_array[i].check_tree_based_non_binary()) # IF INPUT NETWORK IS TREEBASED
+                else:
+                    line.append(input_network_array[i].check_tree_based_non_binary()) # IF OUTPUT NETWORK IS TREEBASED
+                line.append(len(output_network_array_pp[i].vertices))  # NUMBER OF VERTICES IN NETWORK
+                line.append(len(self.getAllArcsFromNetwork(output_network_array_pp[i])))  # NUMBER OF ARCS IN NETWORK
+                line.append(len(output_network_array_pp[i].get_all_leaves()))  # AMOUNT OF LEAVES IN NETWORK
+                isBinaryInput = output_network_array_pp[i].is_binary()
+                line.append(isBinaryInput)  # IF INPUT NETWORK IS BINARY
+                # if isBinaryInput:
+                #     line.append(output_network_array_pp[i].check_tree_based_binary())  # IF OUTPUT NETWORK IS TREEBASED
+                # else:
+                line.append(output_network_array_pp[i].check_tree_based_non_binary())  # IF OUTPUT NETWORK IS TREEBASED
+                line.append(0)  # NUMBER OF VERTICES IN NETWORK
+                line.append(0)  # NUMBER OF ARCS IN NETWORK
+                line.append(0)  # AMOUNT OF LEAVES IN NETWORK
+                # isBinaryInput = output_network_array_fold[i].is_binary()
+                line.append(0)  # IF INPUT NETWORK IS BINARY
+                # if isBinaryInput:
+                #     line.append(output_network_array_fold[i].check_tree_based_binary())  # IF OUTPUT NETWORK IS TREEBASED
+                # else:
+                line.append(0)  # IF OUTPUT NETWORK IS TREEBASED
+                line.append(len(output_network_array_matching[i].vertices))
+                line.append(len(self.getAllArcsFromNetwork(output_network_array_matching[i])))
+                line.append(len(output_network_array_matching[i].get_all_leaves()))
+                line.append(output_network_array_matching[i].is_binary())
+                line.append(output_network_array_matching[i].check_tree_based_non_binary())
+                line.append(output_network_array_tc[i].is_tree_child()) # IS TREE CHILD
+                line.append(output_network_array_n[i].is_normal()) # IS NORMAL
+                line.append(0) # MEASURE 1 FOLD NETWORK
+                line.append(measure_data[0][i][0]) # MEASURE 1 PP NETWORK
+                line.append(measure_data[0][i][1]) # MEASURE 1 MATCHING NETWORK
+                # line.append(measure_data[1][i][0]) # MEASURE 2 FOLD NETWORK
+                # line.append(measure_data[1][i][1]) # MEASURE 2 PP NETWORK
+                # line.append(measure_data[2][i][0]) # MEASURE 3 FOLD NETWORK
+                # line.append(measure_data[2][i][1]) # MEASURE 3 PP NETWORK
+                line.append(len(input_network_array[i].get_reticulation_vertices()))
+                line.append(len(output_network_array_pp[i].get_reticulation_vertices()))
+                line.append(0)
+                line.append(len(input_network_array[i].get_tree_vertices()))
+                line.append(len(output_network_array_pp[i].get_tree_vertices()))
+                line.append(0)
+                line.append(str(input_network_array[i].get_ploidy_levels()[input_network_array[i].root]))
+                line.append(str(output_network_array_pp[i].get_ploidy_levels()[output_network_array_pp[i].root]))
+                line.append(0)
+                line.append(hybrid_number_measure(input_network_array[i]))
+                line.append(hybrid_number_measure(output_network_array_pp[i]))
+                line.append(0)
+                line.append(measure_data[3][i][0]) #FOLDING TIMING DATA
+                line.append(measure_data[3][i][1]) # PLOYPLOIDY TIMING DATA
+                line.append(measure_data[3][i][2]) # MATCHING TIMING DATA
+                # line.append(measure_data[3][i][0]) # MEASURE 4 FOLD NETWORK
+                # line.append(measure_data[3][i][1]) # MEASURE 4 PP NETWORK
+                # if len(input_network_array[i].getAllLeafs()) != len(output_network_array_fold[i].getAllLeafs()):
+                #     print("ENEWICK OF BROKEN NETwORK")
+                #     print(self.networkToENewickLine(input_network_array[i]))
+                # if len(output_network_array_pp[i].get_all_leaves()) != 10:
+                #     print("ENEWICK POLYPLOIDY BROKEN NETWORK")
+                #     print(self.networkToENewickLine(input_network_array[i]))
+                #     print(self.networkToENewickLine(output_network_array_pp[i]))
+                #     # print(output_network_array_pp[i].display_graph())
+                #     print(output_network_array_pp[i].get_all_leaves())
+
+                if not output_network_array_pp[i].check_tree_based_non_binary():
+                    print("ENEWICK OF BROKEN NETWORK")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    print(self.networkToENewickLine(output_network_array_pp[i]))
+
+                if not output_network_array_matching[i].check_tree_based_non_binary():
+                    print("ENEWICK OF BROKEN NETWORK")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    print(self.networkToENewickLine(output_network_array_matching[i]))
+                    print(input_network_array[i].vertices)
+                    print(input_network_array[i].get_all_arcs())
+                    print(input_network_array[i].root)
+                if input_network_array[i].check_tree_based_non_binary():
+                    print("ENEWICK OF BROKEN INPUT NETWORK")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    input_network_array[i].display_graph()
+                    input_network_array[i].make_bipartite_graph().display_graph()
+                    break
+                if not output_network_array_tc[i].is_tree_child():
+                    print("ENEWICK OF BROKEN INPUT NETWORK")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    print(self.networkToENewickLine(output_network_array_tc[i]))
+                    output_network_array_tc[i].display_graph()
+
+                csv_writer.writerow(line)
+            print("SAVED DATA TO SimStudyDava.csv")
+
+
 
 
