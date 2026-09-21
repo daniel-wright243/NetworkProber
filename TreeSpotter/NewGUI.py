@@ -190,6 +190,12 @@ class TreeSpotterGUI:
         runSimStudyButton = tk.Button(export_frame, text="RunSimStudy", command=self.runSimStudy)
         runSimStudyButton.pack()
 
+        runNormalSimStudyButton = tk.Button(export_frame, text="RunNormalSimStudy", command=self.runNormalSimStudy)
+        runNormalSimStudyButton.pack()
+
+        runTCSimStudyButton = tk.Button(export_frame, text="RunTCSimStudy", command=self.runTCSimStudy)
+        runTCSimStudyButton.pack()
+
 
         image_frame = tk.Frame(root, width=512, height=512, bg="white", highlightbackground="black", highlightthickness=1)
         image_frame.pack(side=tk.RIGHT, fill="both", expand=True)
@@ -675,6 +681,24 @@ class TreeSpotterGUI:
         # SimStudy.runBioSimStudy()
         # SimStudy.runGeneratedSimStudy()
         SimStudy.runGeneratedSimStudy()
+        # SimStudy.runBioSimStudy()
+
+    def runNormalSimStudy(self):
+        ## print("Run SimStudy")
+        SimStudy = SimulationStudy(100, 100)
+        # bioSimStudy_measure1, bioSimStudy_measure2, bioSimStudy_measure3, bioSimStudy_measure4 = SimStudy.runBioSimStudy()
+        # SimStudy.runBioSimStudy()
+        # SimStudy.runGeneratedSimStudy()
+        SimStudy.runNormalSimStudy()
+        # SimStudy.runBioSimStudy()
+
+    def runTCSimStudy(self):
+        ## print("Run SimStudy")
+        SimStudy = SimulationStudy(100, 100)
+        # bioSimStudy_measure1, bioSimStudy_measure2, bioSimStudy_measure3, bioSimStudy_measure4 = SimStudy.runBioSimStudy()
+        # SimStudy.runBioSimStudy()
+        # SimStudy.runGeneratedSimStudy()
+        SimStudy.runTCSimStudy()
         # SimStudy.runBioSimStudy()
 
     def InputFromNEXUSFile2(self):
