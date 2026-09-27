@@ -1690,6 +1690,33 @@ class TreeSpotterAlgorithm:
         #
         # return temp_network
 
+    def TreeChildAlgorithm(self, network):
+        """
+
+        :type network: DAG
+        """
+
+        while not network.is_tree_child():
+            l_n = network.get_all_leaves()
+            main_v_n = network.arcs
+            bpg = network.make_omnian_bipartite_graph()
+            bpg.hopcroftkarp()
+            network.apply_omnian_opposite_matching_to_graph(bpg)
+            l_n_prime = network.get_all_leaves()
+            while l_n != l_n_prime:
+                v_n = network.vertices
+                for leaf in l_n_prime:
+                    if leaf not in l_n:
+                        network.remove_vertex(leaf)
+                v_n_prime = network.vertices
+                if v_n == v_n_prime:
+                    break
+            network = network.simplify_network()
+            main_v_n_prime = network.arcs
+            if main_v_n == main_v_n_prime:
+                break
+        return network
+
     def reintegration_algorithm2(self, network, component, input_arc_list, output_arc_list, original_leaf_list, vertex_above_component, old_taxa):
         """
 

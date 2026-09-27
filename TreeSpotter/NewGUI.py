@@ -601,9 +601,6 @@ class TreeSpotterGUI:
             self.updateNetworkInfo(self.PhyloNetwork)
         elif selectedAlgorithm == "Folding":
             output = FoldingFunction3(self.PhyloNetwork, self.PhyloNetwork).startAlgorithmFullNetwork()
-
-
-
             self.PhyloNetwork = output
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
@@ -630,16 +627,17 @@ class TreeSpotterGUI:
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
         elif selectedAlgorithm == "Treechild Algorithm":
-            treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
-            if not treebased.is_tree_child():
-                treechild = TreeSpotterAlgorithm(treebased).tree_based_to_tree_child_algorithm(treebased)
-                self.PhyloNetwork = treechild
-                self.displayImage(treechild)
-                self.updateNetworkInfo(treechild)
-            else:
-                self.PhyloNetwork = treebased
-                self.displayImage(treebased)
-                self.updateNetworkInfo(treebased)
+            # treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
+            # if not treebased.is_tree_child():
+                # treechild = TreeSpotterAlgorithm(treebased).tree_based_to_tree_child_algorithm(treebased)
+            treechild = TreeSpotterAlgorithm(self.PhyloNetwork).TreeChildAlgorithm(self.PhyloNetwork)
+            self.PhyloNetwork = treechild
+            self.displayImage(treechild)
+            self.updateNetworkInfo(treechild)
+            # else:
+            #     self.PhyloNetwork = treebased
+            #     self.displayImage(treebased)
+            #     self.updateNetworkInfo(treebased)
         elif selectedAlgorithm == "Normal Algorithm":
             treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
             if not treebased.is_normal():

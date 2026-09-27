@@ -197,7 +197,7 @@ class DAG:
     def display_graph_no_interior_vertices(self):
         dot = graphviz.Digraph()
         for key, value in self.vertex_dict.items():
-            if len(value["arcs"] == 0) and len(value["reverseArcs"] > 0):
+            if len(value["arcs"]) == 0 and len(value["reverseArcs"]) > 0:
                 dot.node(str(key), label='')
             else:
                 dot.node(str(key))
@@ -289,6 +289,24 @@ class DAG:
             simplified_network.remove_vertex(vertex)
 
         return simplified_network
+
+        # one_to_one_exists = True
+        #
+        # while one_to_one_exists:
+        #     for key, value in simplified_network.vertex_dict.items():
+        #         if len(value["arcs"]) == 1 and len(value["reverseArcs"]) == 1:
+        #             vertices_to_be_simplified.append(key)
+        #
+        #     if len(vertices_to_be_simplified) > 0:
+        #         vertex_above = simplified_network.vertex_dict[vertices_to_be_simplified[0]]["reverseArcs"][0][1]
+        #         vertex_below = simplified_network.vertex_dict[vertices_to_be_simplified[0]]["arcs"][0][1]
+        #
+        #         simplified_network.remove_arc([vertex_above, vertices_to_be_simplified[0]])
+        #         simplified_network.remove_arc([vertices_to_be_simplified[0], vertex_below])
+        #         simplified_network.add_arc([vertex_above, vertex_below])
+        #         simplified_network.remove_vertex(vertices_to_be_simplified[0])
+        #     else:
+        #         return simplified_network
 
     def get_all_leaves(self):
         leaf_array = []

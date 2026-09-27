@@ -300,8 +300,8 @@ class SimulationStudy:
                 # network.displayGraph()
                 arc_list = self.getAllArcsFromNetwork(network)
                 # for repeat in range(int(fc)):
-                for j in range(1, 4):
-                    network = self.addForbiddenConfigurations2(network)
+                # for j in range(1, 4):
+                network = self.addForbiddenConfigurations2(network)
                 # print("FORBIDDEN CONFIGURATION")
                 # network.displayGraph()
 
@@ -310,7 +310,9 @@ class SimulationStudy:
                 # if fc == 2:
                 #     network.displayGraph()
 
-                converted_network = self.readENewickLine(self.networkToENewickLine(network))
+                converted_network = network
+
+                # converted_network = self.readENewickLine(self.networkToENewickLine(network))
 
                 input_networks.append(converted_network)
 
@@ -1245,7 +1247,7 @@ class SimulationStudy:
     def saveDataToCSV(self, input_network_array, output_network_array_pp, output_network_array_fold, output_network_array_matching, output_network_array_tc, output_network_array_n, measure_data):
         database = [input_network_array, output_network_array_pp, output_network_array_fold, output_network_array_matching, output_network_array_tc, output_network_array_n, measure_data]
         self.saveDatabase(database)
-        with open('SimStudyDataThreeConfigs.csv', 'w', newline='') as csvfile:
+        with open('SimStudyDataTest1.csv', 'w', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
             # csv_writer.writerow(["NETWORK NUMBER", "V(N)", "A(N)", "L(N)", "isBinary", "isTreeBased",
             #                      "V(PN)", "A(PN)", "L(PN)", "isBinary", "isTreeBased",
@@ -1340,36 +1342,41 @@ class SimulationStudy:
                 # if len(input_network_array[i].getAllLeafs()) != len(output_network_array_fold[i].getAllLeafs()):
                 #     print("ENEWICK OF BROKEN NETwORK")
                 #     print(self.networkToENewickLine(input_network_array[i]))
-                if len(output_network_array_fold[i].get_all_leaves()) not in {10,15,20,25,30,35}:
-                    print("ENEWICK POLYPLOIDY BROKEN NETWORK")
-                    print(self.networkToENewickLine(input_network_array[i]))
-                    print(self.networkToENewickLine(output_network_array_pp[i]))
-                    # print(output_network_array_pp[i].display_graph())
-                    print(output_network_array_pp[i].get_all_leaves())
+                # if len(output_network_array_fold[i].get_all_leaves()) not in {10,15,20,25,30,35}:
+                #     print("ENEWICK POLYPLOIDY BROKEN NETWORK")
+                #     print(self.networkToENewickLine(input_network_array[i]))
+                #     print(self.networkToENewickLine(output_network_array_pp[i]))
+                #     # print(output_network_array_pp[i].display_graph())
+                #     print(output_network_array_pp[i].get_all_leaves())
 
                 if not output_network_array_pp[i].check_tree_based_non_binary():
-                    print("ENEWICK OF BROKEN NETWORK")
+                    print("POLYPLOIDY BROKEN")
                     print(self.networkToENewickLine(input_network_array[i]))
                     print(self.networkToENewickLine(output_network_array_pp[i]))
 
-                if not output_network_array_matching[i].check_tree_based_non_binary():
-                    print("ENEWICK OF BROKEN NETWORK")
-                    print(self.networkToENewickLine(input_network_array[i]))
-                    print(self.networkToENewickLine(output_network_array_matching[i]))
-                    print(input_network_array[i].vertices)
-                    print(input_network_array[i].get_all_arcs())
-                    print(input_network_array[i].root)
-                if input_network_array[i].check_tree_based_non_binary():
-                    print("ENEWICK OF BROKEN INPUT NETWORK")
-                    print(self.networkToENewickLine(input_network_array[i]))
-                    input_network_array[i].display_graph()
-                    input_network_array[i].make_bipartite_graph().display_graph()
-                    break
-                if not output_network_array_tc[i].is_tree_child():
-                    print("ENEWICK OF BROKEN INPUT NETWORK")
-                    print(self.networkToENewickLine(input_network_array[i]))
-                    print(self.networkToENewickLine(output_network_array_tc[i]))
-                    output_network_array_tc[i].display_graph()
+                # if not output_network_array_pp[i].check_tree_based_non_binary():
+                #     print("ENEWICK OF BROKEN NETWORK")
+                #     print(self.networkToENewickLine(input_network_array[i]))
+                #     print(self.networkToENewickLine(output_network_array_pp[i]))
+                #
+                # if not output_network_array_matching[i].check_tree_based_non_binary():
+                #     print("ENEWICK OF BROKEN NETWORK")
+                #     print(self.networkToENewickLine(input_network_array[i]))
+                #     print(self.networkToENewickLine(output_network_array_matching[i]))
+                #     print(input_network_array[i].vertices)
+                #     print(input_network_array[i].get_all_arcs())
+                #     print(input_network_array[i].root)
+                # if input_network_array[i].check_tree_based_non_binary():
+                #     print("ENEWICK OF BROKEN INPUT NETWORK")
+                #     print(self.networkToENewickLine(input_network_array[i]))
+                #     input_network_array[i].display_graph()
+                #     input_network_array[i].make_bipartite_graph().display_graph()
+                #     break
+                # if not output_network_array_tc[i].is_tree_child():
+                #     print("ENEWICK OF BROKEN INPUT NETWORK")
+                #     print(self.networkToENewickLine(input_network_array[i]))
+                #     print(self.networkToENewickLine(output_network_array_tc[i]))
+                #     output_network_array_tc[i].display_graph()
 
                 csv_writer.writerow(line)
             print("SAVED DATA TO SimStudyDava.csv")
@@ -1933,6 +1940,8 @@ class SimulationStudy:
         :type network: DAG
         """
 
+        temp_network = deepcopy(network)
+
         no_loop = False
 
         while no_loop == False:
@@ -1995,12 +2004,86 @@ class SimulationStudy:
             network.add_arc([new_vertex_2, connector_vertex4])
             network.add_arc([new_vertex_3, connector_vertex5])
 
+            if network.is_tree_child():
+                network = temp_network
+                continue
+
+            if len(network.vertices) < len(temp_network.vertices):
+                network = temp_network
+                print("BROKEN NETWORK")
+                continue
+
             if self.checkDirectedCyclicity(network):
                 no_loop = True
             else:
                 return network
 
         return network
+
+    # def addTreeChildForbiddenConfiguration1V2(self, network):
+    #     """
+    #
+    #     :type network: DAG
+    #     """
+    #
+    #     loop = True
+    #
+    #     max_vertex = max(network.vertices)
+    #
+    #     new_vertex_1 = max_vertex + 1
+    #     new_vertex_2 = max_vertex + 2
+    #     new_vertex_3 = max_vertex + 3
+    #
+    #     connector_vertex1 = max_vertex + 4
+    #     connector_vertex2 = max_vertex + 5
+    #     connector_vertex3 = max_vertex + 6
+    #     connector_vertex4 = max_vertex + 7
+    #     connector_vertex5 = max_vertex + 8
+    #
+    #     network.add_vertex(new_vertex_1)
+    #     network.add_vertex(new_vertex_2)
+    #     network.add_vertex(new_vertex_3)
+    #
+    #     network.add_arc([new_vertex_1, new_vertex_2])
+    #     network.add_arc([new_vertex_1, new_vertex_3])
+    #
+    #
+    #     while loop:
+    #         arc_list = network.arcs
+    #
+    #         if [0, 1] in arc_list:
+    #             arc_list.remove([0, 1])
+    #
+    #         temp_network = deepcopy(network)
+    #         random_arc_index_1 = random.randrange(len(arc_list) - 1)
+    #         temp_network.add_vertex_on_edge(connector_vertex1, arc_list[random_arc_index_1])
+    #         arc_list.remove(arc_list[random_arc_index_1])
+    #         random_arc_index_2 = random.randrange(len(arc_list) - 1)
+    #         temp_network.add_vertex_on_edge(connector_vertex2, arc_list[random_arc_index_2])
+    #         arc_list.remove(arc_list[random_arc_index_2])
+    #         random_arc_index_3 = random.randrange(len(arc_list) - 1)
+    #         temp_network.add_vertex_on_edge(connector_vertex3, arc_list[random_arc_index_3])
+    #         arc_list.remove(arc_list[random_arc_index_3])
+    #
+    #         random_arc_index_4 = random.randrange(len(arc_list) - 1)
+    #         temp_network.add_vertex_on_edge(connector_vertex4, arc_list[random_arc_index_4])
+    #         arc_list.remove(arc_list[random_arc_index_4])
+    #         random_arc_index_5 = random.randrange(len(arc_list) - 1)
+    #         temp_network.add_vertex_on_edge(connector_vertex5, arc_list[random_arc_index_5])
+    #         arc_list.remove(arc_list[random_arc_index_5])
+    #
+    #         temp_network.add_arc([connector_vertex1, new_vertex_2])
+    #         temp_network.add_arc([connector_vertex2, new_vertex_1])
+    #         temp_network.add_arc([connector_vertex3, new_vertex_3])
+    #         temp_network.add_arc([new_vertex_2, connector_vertex4])
+    #         temp_network.add_arc([new_vertex_3, connector_vertex5])
+    #
+    #         if self.checkDirectedCyclicity(temp_network):
+    #             loop = True
+    #         else:
+    #             return temp_network
+    #
+    #     return network
 
 
     def addTreeChildForbiddenConfiguration2(self, network):
@@ -2421,7 +2504,7 @@ class SimulationStudy:
     def saveNormalDataToCSV(self, input_network_array, output_network_array_n, measure_data):
         # database = [input_network_array, output_network_array_pp, output_network_array_fold, output_network_array_matching, output_network_array_tc, output_network_array_n, measure_data]
         # self.saveDatabase(database)
-        with open('SimStudyDataNormal.csv', 'w', newline='') as csvfile:
+        with open('SimStudyDataNormalTest3.csv', 'w', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
             csv_writer.writerow(["NETWORK NUMBER", "V(N)", "A(N)", "L(N)", "isBinary", "isTreeBased", "isInputNormal", "isNormal", "Measure1 Normal", "NORMAL TIME"])
             for i in range(len(input_network_array)):
@@ -2487,7 +2570,12 @@ class SimulationStudy:
                 # for repeat in range(int(fc)):
                 # for j in range(1, 4):
                 #     network = self.addTreeChildForbiddenConfiguration1(network)
-                network = self.addTreeChildForbiddenConfiguration1(network)
+                for j in range(1, 4):
+                    continued_network = deepcopy(network)
+                    network = self.addTreeChildForbiddenConfiguration1(continued_network)
+                # network.display_graph()
+                # network.display_graph()
+                # raise Exception("TEST")
                 # print("FORBIDDEN CONFIGURATION")
                 # network.displayGraph()
 
@@ -2496,15 +2584,17 @@ class SimulationStudy:
                 # if fc == 2:
                 #     network.displayGraph()
 
-                converted_network = self.readENewickLine(self.networkToENewickLine(network))
+                converted_network = network
+
+                # converted_network = self.readENewickLine(self.networkToENewickLine(network))
 
                 input_networks.append(converted_network)
 
                 input_tc = deepcopy(converted_network)
                 input_matching = deepcopy(converted_network)
 
-                output_m = TreeSpotterAlgorithm(input_matching).bipartite_graph_algorithm(input_matching)
-                output_networks_matching.append(output_m)
+                # output_m = TreeSpotterAlgorithm(input_matching).bipartite_graph_algorithm(input_matching)
+                # output_networks_matching.append(output_m)
                 tree_child_start_time = time.time()
                 output_tc = self.treeChildAlgorithm(input_tc)
                 # output_tc = TreeSpotterAlgorithm(output_m).tree_based_to_tree_child_algorithm(output_m)
@@ -2534,7 +2624,7 @@ class SimulationStudy:
     def saveTCDataToCSV(self, input_network_array, output_network_array_tc, measure_data):
         # database = [input_network_array, output_network_array_pp, output_network_array_fold, output_network_array_matching, output_network_array_tc, output_network_array_n, measure_data]
         # self.saveDatabase(database)
-        with open('SimStudyDataTC.csv', 'w', newline='') as csvfile:
+        with open('SimStudyDataTCTest3.csv', 'w', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
             csv_writer.writerow(["NETWORK NUMBER", "V(N)", "A(N)", "L(N)", "isBinary", "isTreeBased", "isInputTreeChild", "isTreeChild", "Measure1 TC", "TREECHILD TIME"])
             for i in range(len(input_network_array)):
@@ -2554,6 +2644,17 @@ class SimulationStudy:
                 line.append(measure_data[0][i][0])  # MEASURE 1 TC NETWORK
                 line.append(measure_data[1][i][0]) # TC TIMING DATA
                 csv_writer.writerow(line)
+
+                if not output_network_array_tc[i].is_tree_child():
+                    print("TC BROKEN")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    print(self.networkToENewickLine(output_network_array_tc[i]))
+
+                if input_network_array[i].is_tree_child():
+                    print("TC BROKEN")
+                    print(self.networkToENewickLine(input_network_array[i]))
+                    print(self.networkToENewickLine(output_network_array_tc[i]))
+                    input_network_array[i].display_graph()
             print("SAVED DATA TO SimStudyDava.csv")
 
     def normalAlgorithm(self, network):
@@ -2562,7 +2663,7 @@ class SimulationStudy:
         :type network: DAG
         """
 
-        output_tc = TreeSpotterAlgorithm(network).tree_based_to_tree_child_algorithm(network)
+        output_tc = self.treeChildAlgorithm(network)
 
         if output_tc.is_normal():
             return output_tc
@@ -2601,7 +2702,7 @@ class SimulationStudy:
 
         while not network.is_tree_child():
             l_n = network.get_all_leaves()
-            main_v_n = network.vertices
+            main_v_n = network.arcs
             bpg = network.make_omnian_bipartite_graph()
             bpg.hopcroftkarp()
             network.apply_omnian_opposite_matching_to_graph(bpg)
@@ -2614,7 +2715,8 @@ class SimulationStudy:
                 v_n_prime = network.vertices
                 if v_n == v_n_prime:
                     break
-            main_v_n_prime = network.vertices
+            network = network.simplify_network()
+            main_v_n_prime = network.arcs
             if main_v_n == main_v_n_prime:
                 break
         return network
