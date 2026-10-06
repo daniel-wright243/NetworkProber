@@ -1,0 +1,4 @@
+#NEXUS 
+BEGIN NETWORKS; 
+    NETWORK * UNTITLED = [&R] ((((,#H1,#H2))#R0,(()#R1,)),((()#R2,),#H0));
+END; 

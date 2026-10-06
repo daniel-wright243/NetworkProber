@@ -1554,6 +1554,43 @@ class TreeSpotterAlgorithm:
         #
         # return temp_network
 
+    def new_normalAlgorithm(self, network):
+        """
+
+        :type network: DAG
+        """
+
+        output_tc = self.new_treeChildAlgorithm(network)
+
+        if output_tc.is_normal():
+            return output_tc
+        else:
+            while not output_tc.is_normal():
+                network_x_graph1 = networkx.DiGraph()
+                for vertex in output_tc.vertices:
+                    network_x_graph1.add_node(vertex)
+                for arc in output_tc.arcs:
+                    network_x_graph1.add_edge(arc[0], arc[1])
+                output_tc_arc_list = deepcopy(output_tc.arcs)
+                for arc in output_tc_arc_list:
+                    paths_from_u_to_v = networkx.all_simple_paths(network_x_graph1, arc[0], arc[1])
+                    path_list = []
+                    for path in paths_from_u_to_v:
+                        path_list.append(path)
+                    if len(path_list) > 1:
+                        output_tc.remove_arc(arc)
+                    network_x_graph1 = networkx.DiGraph()
+                    for vertex in output_tc.vertices:
+                        network_x_graph1.add_node(vertex)
+                    for network_arc in output_tc.arcs:
+                        network_x_graph1.add_edge(network_arc[0], network_arc[1])
+                output_tc = output_tc.simplify_network()
+                output_tc_arc_list2 = deepcopy(output_tc.arcs)
+                if output_tc_arc_list == output_tc_arc_list2:
+                    break
+
+        return output_tc
+
     # def treeBasedToTreeChildAlgorithm(self, network):
     #     """
     #
@@ -1691,6 +1728,33 @@ class TreeSpotterAlgorithm:
         # return temp_network
 
     def TreeChildAlgorithm(self, network):
+        """
+
+        :type network: DAG
+        """
+
+        while not network.is_tree_child():
+            l_n = network.get_all_leaves()
+            main_v_n = network.arcs
+            bpg = network.make_omnian_bipartite_graph()
+            bpg.hopcroftkarp()
+            network.apply_omnian_opposite_matching_to_graph(bpg)
+            l_n_prime = network.get_all_leaves()
+            while l_n != l_n_prime:
+                v_n = network.vertices
+                for leaf in l_n_prime:
+                    if leaf not in l_n:
+                        network.remove_vertex(leaf)
+                v_n_prime = network.vertices
+                if v_n == v_n_prime:
+                    break
+            network = network.simplify_network()
+            main_v_n_prime = network.arcs
+            if main_v_n == main_v_n_prime:
+                break
+        return network
+
+    def new_treeChildAlgorithm(self, network):
         """
 
         :type network: DAG
@@ -2620,7 +2684,6 @@ class TreeSpotterAlgorithm:
 
         :type network: DAG
         """
-
         for leaf in network.get_all_leaves():
             if leaf not in network.taxa.keys():
                 network.taxa[leaf] = leaf
@@ -2779,6 +2842,12 @@ class TreeSpotterAlgorithm:
         if not fa_temp.check_tree_based_non_binary():
             fa_temp = fa_temp.simplify_network()
             fa_temp = FoldingFunction3(fa_temp, network).startAlgorithm(True)
+            if not fa_temp.check_tree_based_non_binary():
+                fa_temp = fa_temp.simplify_network()
+                fa_temp = FoldingFunction3(fa_temp, network).startAlgorithm(True)
+                if not fa_temp.check_tree_based_non_binary():
+                    fa_temp = fa_temp.simplify_network()
+                    fa_temp = FoldingFunction3(fa_temp, network).startAlgorithm(True)
 
         for key, value in independant_component.vertex_dict.items():
             N.remove_vertex(key)
@@ -2800,8 +2869,6 @@ class TreeSpotterAlgorithm:
             print(network.arcs)
             print(network.root)
             Exception()
-
-
 
         return N
 

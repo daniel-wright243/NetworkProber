@@ -1,6 +1,7 @@
 import ast
 import pathlib
 import re
+import time
 import tkinter as tk
 
 import graphviz
@@ -180,6 +181,9 @@ class TreeSpotterGUI:
 
         self.randic_measure_output_label = tk.Label(alg_output_frame, text="Randic Measure: ")
         self.randic_measure_output_label.grid(row=3, column=0)
+
+        self.time_taken_label = tk.Label(alg_output_frame, text="Time Taken: ")
+        self.time_taken_label.grid(row=4, column=0)
 
         export_frame = tk.Frame(self.input_frame)
         export_frame.pack()
@@ -420,13 +424,16 @@ class TreeSpotterGUI:
         return output_line
 
     def displayAddPreview(self):
+
+        vertex_list = ast.literal_eval(self.vertices_input.get())
+
         arc_list = ast.literal_eval(self.arcs_input.get())
         if type(arc_list[0]) == int:
             arc_list = [[arc_list[0], arc_list[1]]]
         self.fullArcList = self.fullArcList + arc_list
         self.InputPageDisplayGraph("InputPreviewNetwork")
 
-        self.num_vertices_label.config(text="Amount of Vertices: " + self.vertices_input.get())
+        self.num_vertices_label.config(text="Amount of Vertices: " + str(len(vertex_list)))
 
         self.num_arcs_label.config(text="Amount of Arcs: " + str(len(self.fullArcList)))
 
@@ -521,7 +528,10 @@ class TreeSpotterGUI:
             if self.PhyloNetwork.check_tree_based_binary():
                 self.algorithmProgressLabel.config(text="Network is already tree-based")
             else:
+                start_time = time.time()
                 self.algorithmDecision(selectedAlgorithm)
+                end_time = time.time()
+                total_time = end_time - start_time
                 print("SELF.PHYLONETWORK.VERTICES")
                 print(self.PhyloNetwork.vertices)
                 if self.PhyloNetwork.check_tree_based_non_binary():
@@ -537,17 +547,22 @@ class TreeSpotterGUI:
                         self.tree_child_output_label.config(text="Treechild: False")
                         self.normal_output_label.config(text="Normal: False")
                     self.randic_measure_output_label.config(text="Randic Measure: " + str(measure1(temp_phylo_network, self.PhyloNetwork)))
+                    self.time_taken_label.config(text="Time Taken: " + str(total_time))
                 else:
                     self.algorithmProgressLabel.config(text="Algorithm State: Finished not Tree-based")
                     self.tree_based_output_label.config(text="Treebased: False")
                     self.tree_child_output_label.config(text="Treechild: False")
                     self.normal_output_label.config(text="Normal: False")
                     self.randic_measure_output_label.config(text="Randic Measure: " + str(measure1(temp_phylo_network, self.PhyloNetwork)))
+                    self.time_taken_label.config(text="Time Taken: " + str(total_time))
         else:
             if self.PhyloNetwork.check_tree_based_non_binary():
                 self.algorithmProgressLabel.config(text="Network is already tree-based")
             else:
+                start_time = time.time()
                 self.algorithmDecision(selectedAlgorithm)
+                end_time = time.time()
+                total_time = end_time - start_time
                 if self.PhyloNetwork.check_tree_based_non_binary():
                     self.algorithmProgressLabel.config(text="Algorithm State: Finished Tree-based")
                     self.tree_based_output_label.config(text="Treebased: True")
@@ -561,12 +576,14 @@ class TreeSpotterGUI:
                         self.tree_child_output_label.config(text="Treechild: False")
                         self.normal_output_label.config(text="Normal: False")
                     self.randic_measure_output_label.config(text="Randic Measure: " + str(measure1(temp_phylo_network, self.PhyloNetwork)))
+                    self.time_taken_label.config(text="Time Taken: " + str(total_time))
                 else:
                     self.algorithmProgressLabel.config(text="Algorithm State: Finished not Tree-based")
                     self.tree_based_output_label.config(text="Treebased: False")
                     self.tree_child_output_label.config(text="Treechild: False")
                     self.normal_output_label.config(text="Normal: False")
                     self.randic_measure_output_label.config(text="Randic Measure: " + str(measure1(temp_phylo_network, self.PhyloNetwork)))
+                    self.time_taken_label.config(text="Time Taken: " + str(total_time))
 
 
 
@@ -630,7 +647,7 @@ class TreeSpotterGUI:
             # treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
             # if not treebased.is_tree_child():
                 # treechild = TreeSpotterAlgorithm(treebased).tree_based_to_tree_child_algorithm(treebased)
-            treechild = TreeSpotterAlgorithm(self.PhyloNetwork).TreeChildAlgorithm(self.PhyloNetwork)
+            treechild = TreeSpotterAlgorithm(self.PhyloNetwork).new_treeChildAlgorithm(self.PhyloNetwork)
             self.PhyloNetwork = treechild
             self.displayImage(treechild)
             self.updateNetworkInfo(treechild)
@@ -639,16 +656,16 @@ class TreeSpotterGUI:
             #     self.displayImage(treebased)
             #     self.updateNetworkInfo(treebased)
         elif selectedAlgorithm == "Normal Algorithm":
-            treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
-            if not treebased.is_normal():
-                normal = TreeSpotterAlgorithm(treebased).tree_based_to_normal_algorithm(treebased)
-                self.PhyloNetwork = normal
-                self.displayImage(normal)
-                self.updateNetworkInfo(normal)
-            else:
-                self.PhyloNetwork = treebased
-                self.displayImage(treebased)
-                self.updateNetworkInfo(treebased)
+            # treebased = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
+            # if not treebased.is_normal():
+            normal = TreeSpotterAlgorithm(self.PhyloNetwork).new_normalAlgorithm(self.PhyloNetwork)
+            self.PhyloNetwork = normal
+            self.displayImage(normal)
+            self.updateNetworkInfo(normal)
+            # else:
+            #     self.PhyloNetwork = treebased
+            #     self.displayImage(treebased)
+            #     self.updateNetworkInfo(treebased)
         elif selectedAlgorithm == "New Folding Algorithm":
             output = TreeSpotterAlgorithm(self.PhyloNetwork).minimised_folding_algorithm(self.PhyloNetwork)
             print("OUTPUT VERTICES")
@@ -678,7 +695,8 @@ class TreeSpotterGUI:
         # bioSimStudy_measure1, bioSimStudy_measure2, bioSimStudy_measure3, bioSimStudy_measure4 = SimStudy.runBioSimStudy()
         # SimStudy.runBioSimStudy()
         # SimStudy.runGeneratedSimStudy()
-        SimStudy.runGeneratedSimStudy()
+        # SimStudy.runGeneratedSimStudy()
+        SimStudy.runGeneratedSimStudyNoFold()
         # SimStudy.runBioSimStudy()
 
     def runNormalSimStudy(self):

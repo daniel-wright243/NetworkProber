@@ -1,3 +1,4 @@
+import ast
 import math
 from copy import deepcopy
 
@@ -29,7 +30,12 @@ class PolyPloidy:
         GN = N.make_bipartite_graph()
         GN.hopcroftkarp()
         NPrime = deepcopy(N)
-        PloidyIndex, PloidyProfile = self.getInitialPloidyProfile()
+        # PloidyIndex, PloidyProfile = self.getInitialPloidyProfile()
+        PloidyProfile, PloidyIndex = self.getPloidyProfile(NPrime)
+        # print("PLOIDY INDEX")
+        # print(PloidyIndex)
+        # print("PLOIDY PROFILE")
+        # print(PloidyProfile)
         # print("PLOIDY PROFILE")
         # print(PloidyProfile)
         # print("PLOIDY INDEX")
@@ -51,6 +57,20 @@ class PolyPloidy:
                 old_index = N.taxa[PloidyIndex[recovered_i - 1]]
                 new_tax_dict[key] = old_index
         # print(new_tax_dict)
+        # edge_string = str(G.edges)
+        #
+        # edge_string = edge_string.replace('(', '[')
+        # edge_string = edge_string.replace(')', ']')
+        #
+        # edge_list = ast.literal_eval(edge_string)
+        #
+        # trimmed_edge_list = []
+        #
+        # for edge in edge_list:
+        #     trimmed_edge_list.append([edge[0], edge[1]])
+        #
+        # vertex_list = G.nodes
+
         ploidyNetwork = networkx.to_dict_of_lists(G)
         vertex_list = []
         edge_list = []
@@ -58,19 +78,23 @@ class PolyPloidy:
             vertex_list.append(vertex)
             for item in ploidyNetwork[vertex]:
                 edge_list.append([vertex, item])
-        root = min(vertex_list)
+        root = 0
         PloidyNetwork = DAG(vertex_list, edge_list, new_tax_dict, root)
         # PloidyNetwork.display_graph()
         temp_network = deepcopy(PloidyNetwork)
 
         for vertex in PloidyNetwork.vertices:
+            # PloidyNetwork.convertVertex(vertex, max_vertex + 1)
             temp_network = self.convertVertex(temp_network, vertex, max_vertex + 1, main_network)
             max_vertex = max_vertex + 1
+
+        # temp_network.display_graph()
 
         # print("TAXDICT")
         # print(temp_network.taxa)
 
         return temp_network
+
 
     # def startAlgorithm(self):
     #     N = self.PhyloNetwork
@@ -362,4 +386,30 @@ class PolyPloidy:
 
 
         return network
+
+    def getPloidyProfile(self, network):
+        """
+
+        :type network: DAG
+        """
+
+        all_paths = network.get_all_paths()
+
+        ploidy_profile = []
+        ploidy_index = []
+
+        for path in all_paths:
+            print(path)
+            end_vertex = path[len(path) - 1]
+            if end_vertex not in ploidy_index:
+                ploidy_index.append(end_vertex)
+                ploidy_profile.append(1)
+            else:
+                index = ploidy_index.index(end_vertex)
+                ploidy_profile[index] = ploidy_profile[index] + 1
+
+        self.bubbleSort(ploidy_profile, ploidy_index)
+
+        return ploidy_profile, ploidy_index
+
 

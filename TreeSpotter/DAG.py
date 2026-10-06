@@ -45,10 +45,14 @@ class DAG:
 
         if arc in self.arcs:
             if arc[0] in self.vertices and arc[1] in self.vertices:
-                self.vertex_dict[arc[0]]["arcs"].remove(arc)
-                self.vertex_dict[arc[1]]["reverseArcs"].remove([arc[1], arc[0]])
-                self.arcs.remove(arc)
-                self.reverse_arcs.remove([arc[1], arc[0]])
+                if arc in self.vertex_dict[arc[0]]["arcs"]:
+                    self.vertex_dict[arc[0]]["arcs"].remove(arc)
+                if [arc[1], arc[0]] in self.vertex_dict[arc[1]]["reverseArcs"]:
+                    self.vertex_dict[arc[1]]["reverseArcs"].remove([arc[1], arc[0]])
+                if arc in self.arcs:
+                    self.arcs.remove(arc)
+                if [arc[1], arc[0]] in self.reverse_arcs:
+                    self.reverse_arcs.remove([arc[1], arc[0]])
 
     def add_vertex(self, vertex):
         self.vertex_dict[vertex] = {"arcs": [], "reverseArcs": [], "tax": None}
@@ -826,3 +830,22 @@ class DAG:
         # print(converted_component)
 
         return converted_component, converted_omnians, converted_reticulations
+
+    def convertVertex(self, old, new):
+
+        arcs = deepcopy(self.vertex_dict[old]["arcs"])
+        reverseArcs = deepcopy(self.vertex_dict[old]["reverseArcs"])
+
+        print("REMOVING OLD")
+        print(old)
+        print(arcs)
+        print(reverseArcs)
+        self.remove_vertex(old)
+        self.add_vertex(new)
+        for arc in arcs:
+            self.add_arc([new, arc[1]])
+        for arc in reverseArcs:
+            self.add_arc([arc[1], new])
+        if old == self.root:
+            self.root = new
+
