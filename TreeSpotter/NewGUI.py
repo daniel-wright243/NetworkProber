@@ -13,12 +13,14 @@ from tkinter import ttk
 import numpy as np
 from tkinter.filedialog import askopenfilename
 
+from TreeSpotter.LeafAlgorithm import leaf_algorithm
 from TreeSpotter.Measures import measure1
 from TreeSpotter.DAG import DAG
 from TreeSpotter.PloidyAlgorithm import PolyPloidy
 from TreeSpotter.SimulationStudy import SimulationStudy
 from TreeSpotter.TreeSpotterAlgorithm import TreeSpotterAlgorithm
 from TreeSpotter.TreeSpotterFoldingFunction3 import FoldingFunction3
+from TreeSpotter.leaf_tree_child_algorithm import leaf_tree_child_algorithm
 from phylox.newick_parser import extended_newick_to_dinetwork, dinetwork_to_extended_newick
 
 
@@ -142,7 +144,7 @@ class TreeSpotterGUI:
             text="Method:"
         ).grid(row=1, column=0)
 
-        dd_options = ["Polyploidy", "Folding", "Polyploidy Components", "Folding Components", "Matching Components", "Treechild Algorithm", "Normal Algorithm", "New Folding Algorithm", "New PolyPloidy Algorithm"]
+        dd_options = ["Matching Components", "Treechild Algorithm", "Normal Algorithm", "Folding Algorithm", "PolyPloidy Algorithm", "Leaf Algorithm", "Leaf Tree-child Algorithm"]
 
         self.algorithmDropDown = ttk.Combobox(self.algorithmSettingsFrame, values=dd_options)
         self.algorithmDropDown.set("Select an algorithm")
@@ -611,34 +613,34 @@ class TreeSpotterGUI:
         return network
 
     def algorithmDecision(self, selectedAlgorithm):
-        if selectedAlgorithm == "Polyploidy":
-            output = PolyPloidy(self.PhyloNetwork).startAlgorithm(max(self.PhyloNetwork.vertices), self.PhyloNetwork)
-            self.PhyloNetwork = output
-            self.displayImage(self.PhyloNetwork)
-            self.updateNetworkInfo(self.PhyloNetwork)
-        elif selectedAlgorithm == "Folding":
-            output = FoldingFunction3(self.PhyloNetwork, self.PhyloNetwork).startAlgorithmFullNetwork()
-            self.PhyloNetwork = output
-            self.displayImage(self.PhyloNetwork)
-            self.updateNetworkInfo(self.PhyloNetwork)
-            print("FOLDING")
-        elif selectedAlgorithm == "Polyploidy Components":
-            output = TreeSpotterAlgorithm(self.PhyloNetwork).start_algorithm(True)
-            self.PhyloNetwork = output
-            self.displayImage(self.PhyloNetwork)
-            self.updateNetworkInfo(self.PhyloNetwork)
-            print("POLYPLOIDY COMPONENTS")
-        elif selectedAlgorithm == "Folding Components":
-            output = TreeSpotterAlgorithm(self.PhyloNetwork).start_algorithm(False)
-            print("OUTPUT VERTICES")
-            print(output.vertices)
-            print("OUTPUT ARCS")
-            print(output.get_all_arcs())
-            self.PhyloNetwork = output
-            self.displayImage(self.PhyloNetwork)
-            self.updateNetworkInfo(self.PhyloNetwork)
-            print("FOLDING COMPONENTS")
-        elif selectedAlgorithm == "Matching Components":
+        # if selectedAlgorithm == "Polyploidy":
+        #     output = PolyPloidy(self.PhyloNetwork).startAlgorithm(max(self.PhyloNetwork.vertices), self.PhyloNetwork)
+        #     self.PhyloNetwork = output
+        #     self.displayImage(self.PhyloNetwork)
+        #     self.updateNetworkInfo(self.PhyloNetwork)
+        # elif selectedAlgorithm == "Folding":
+        #     output = FoldingFunction3(self.PhyloNetwork, self.PhyloNetwork).startAlgorithmFullNetwork()
+        #     self.PhyloNetwork = output
+        #     self.displayImage(self.PhyloNetwork)
+        #     self.updateNetworkInfo(self.PhyloNetwork)
+        #     print("FOLDING")
+        # elif selectedAlgorithm == "Polyploidy Components":
+        #     output = TreeSpotterAlgorithm(self.PhyloNetwork).start_algorithm(True)
+        #     self.PhyloNetwork = output
+        #     self.displayImage(self.PhyloNetwork)
+        #     self.updateNetworkInfo(self.PhyloNetwork)
+        #     print("POLYPLOIDY COMPONENTS")
+        # elif selectedAlgorithm == "Folding Components":
+        #     output = TreeSpotterAlgorithm(self.PhyloNetwork).start_algorithm(False)
+        #     print("OUTPUT VERTICES")
+        #     print(output.vertices)
+        #     print("OUTPUT ARCS")
+        #     print(output.get_all_arcs())
+        #     self.PhyloNetwork = output
+        #     self.displayImage(self.PhyloNetwork)
+        #     self.updateNetworkInfo(self.PhyloNetwork)
+        #     print("FOLDING COMPONENTS")
+        if selectedAlgorithm == "Matching Components":
             output = TreeSpotterAlgorithm(self.PhyloNetwork).bipartite_graph_algorithm(self.PhyloNetwork)
             self.PhyloNetwork = output
             self.displayImage(self.PhyloNetwork)
@@ -666,7 +668,7 @@ class TreeSpotterGUI:
             #     self.PhyloNetwork = treebased
             #     self.displayImage(treebased)
             #     self.updateNetworkInfo(treebased)
-        elif selectedAlgorithm == "New Folding Algorithm":
+        elif selectedAlgorithm == "Folding Algorithm":
             output = TreeSpotterAlgorithm(self.PhyloNetwork).minimised_folding_algorithm(self.PhyloNetwork)
             print("OUTPUT VERTICES")
             print(output.vertices)
@@ -676,7 +678,7 @@ class TreeSpotterGUI:
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
             print("FOLDING COMPONENTS")
-        elif selectedAlgorithm == "New PolyPloidy Algorithm":
+        elif selectedAlgorithm == "PolyPloidy Algorithm":
             output = TreeSpotterAlgorithm(self.PhyloNetwork).minimised_ployploidy_algorithm(self.PhyloNetwork)
             print("OUTPUT VERTICES")
             print(output.vertices)
@@ -686,6 +688,16 @@ class TreeSpotterGUI:
             self.displayImage(self.PhyloNetwork)
             self.updateNetworkInfo(self.PhyloNetwork)
             print("POLYPLOIDY COMPONENTS")
+        elif selectedAlgorithm == "Leaf Algorithm":
+            output = leaf_algorithm(self.PhyloNetwork).start_algorithm(self.PhyloNetwork)
+            self.PhyloNetwork = output
+            self.displayImage(self.PhyloNetwork)
+            self.updateNetworkInfo(self.PhyloNetwork)
+        elif selectedAlgorithm == "Leaf Tree-child Algorithm":
+            output = leaf_tree_child_algorithm(self.PhyloNetwork).start_algorithm(self.PhyloNetwork)
+            self.PhyloNetwork = output
+            self.displayImage(self.PhyloNetwork)
+            self.updateNetworkInfo(self.PhyloNetwork)
         else:
             print("INVALID METHOD")
 
